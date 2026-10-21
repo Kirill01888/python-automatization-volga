@@ -1,0 +1,48 @@
+# Виртуальное окружение
+.venv/
+venv/
+env/
+ENV/
+
+# Кэш и скомпилированные файлы Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Сборка и дистрибутивы
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Pytest и покрытие
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Allure (результаты и отчёты генерируются при каждом запуске)
+allure-results/
+allure-report/
+
+# Скриншоты и логи тестов
+screenshots/
+logs/
+*.log
+
+# Переменные окружения и секреты
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
