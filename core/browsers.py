@@ -13,7 +13,7 @@ from selenium.webdriver.remote.webdriver import WebDriver
 from config import WINDOW_HEIGHT, WINDOW_WIDTH
 
 
-class BrowserUnavailable(Exception):
+class BrowserUnavailableError(Exception):
     """Браузер не удалось запустить на этой машине."""
 
 
@@ -74,7 +74,7 @@ def create_driver(name: str, headless: bool = False) -> WebDriver:
     try:
         driver = BROWSERS[name](headless)
     except WebDriverException as exc:
-        raise BrowserUnavailable(
+        raise BrowserUnavailableError(
             f"Браузер '{name}' не удалось запустить: {exc.msg or exc}"
         ) from exc
     driver.set_window_size(WINDOW_WIDTH, WINDOW_HEIGHT)

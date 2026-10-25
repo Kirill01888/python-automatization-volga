@@ -5,7 +5,7 @@ import allure
 import pytest
 
 from config import BASE_URL
-from core.browsers import BrowserUnavailable, create_driver, parse_browsers
+from core.browsers import BrowserUnavailableError, create_driver, parse_browsers
 
 _browser_versions: dict[str, str] = {}
 
@@ -36,7 +36,7 @@ def driver(request, browser_name):
     headless = request.config.getoption("--headless")
     try:
         drv = create_driver(browser_name, headless)
-    except BrowserUnavailable as exc:
+    except BrowserUnavailableError as exc:
         pytest.skip(str(exc))
 
     _browser_versions[browser_name] = drv.capabilities.get("browserVersion", "?")
