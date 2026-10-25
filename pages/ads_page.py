@@ -62,28 +62,6 @@ class AdsPage(BasePage):
     def seconds_since_load(self) -> float:
         return time.monotonic() - self.loaded_at
 
-    def set_viewport(self, width: int, height: int) -> tuple[int, int]:
-        """Размер видимой области. Chrome/Edge — эмуляция устройства через CDP
-        (окно браузера уже ~500 px сделать нельзя), Firefox — размер окна.
-        Возвращает фактические window.innerWidth / innerHeight."""
-        with allure.step(f"Установить размер экрана {width}×{height}"):
-            if hasattr(self.driver, "execute_cdp_cmd"):
-                self.driver.execute_cdp_cmd(
-                    "Emulation.setDeviceMetricsOverride",
-                    {
-                        "width": width,
-                        "height": height,
-                        "deviceScaleFactor": 1,
-                        "mobile": True,
-                    },
-                )
-            else:
-                self.driver.set_window_size(width, height)
-        return self.get_viewport()
-
-    def get_viewport(self) -> tuple[int, int]:
-        w, h = self.driver.execute_script("return [window.innerWidth, window.innerHeight];")
-        return int(w), int(h)
 
     # ========================================================================
     # Содержимое страницы

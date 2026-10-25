@@ -30,7 +30,6 @@ class BasePage:
             self.driver.get(self.url)
         return self
 
-    # --- поиск и ожидания -------------------------------------------------
     def find(self, locator: Locator) -> WebElement:
         return self.wait.until(EC.visibility_of_element_located(locator))
 
@@ -65,6 +64,51 @@ class BasePage:
             return True
         except TimeoutException:
             return False
+
+    def set_viewport(self, width: int, height: int) -> tuple[int, int]:
+        """Размер видимой области. Chrome/Edge — эмуляция устройства через CDP
+        (окно браузера уже ~500 px сделать нельзя), Firefox — размер окна.
+        Возвращает фактические window.innerWidth / innerHeight."""
+        with allure.step(f"Установить размер экрана {width}×{height}"):
+            if hasattr(self.driver, "execute_cdp_cmd"):
+                self.driver.execute_cdp_cmd(
+                    "Emulation.setDeviceMetricsOverride",
+                    {
+                        "width": width,
+                        "height": height,
+                        "deviceScaleFactor": 1,
+                        "mobile": True,
+                    },
+                )
+            else:
+                self.driver.set_window_size(width, height)
+        return self.get_viewport()
+
+    def get_viewport(self) -> tuple[int, int]:
+        w, h = self.driver.execute_script("return [window.innerWidth, window.innerHeight];")
+        return int(w), int(h)
+
+    def get_rect(self, locator: Locator) -> dict[str, float]:
+        """Границы элемента на экране (getBoundingClientRect)."""
+        rect = self.driver.execute_script(
+            """const r = arguments[0].getBoundingClientRect();
+               return {left: r.left, top: r.top, right: r.right, bottom: r.bottom,
+                       width: r.width, height: r.height};""",
+            self.driver.find_element(*locator),
+        )
+        return {k: round(v, 1) for k, v in rect.items()}
+
+    def is_inside_viewport(self, locator: Locator, horizontal_only: bool = False) -> bool:
+        """Элемент целиком в видимой области (или только по ширине)."""
+        r = self.get_rect(locator)
+        vw, vh = self.get_viewport()
+        fits_x = r["left"] >= 0 and r["right"] <= vw
+        return fits_x if horizontal_only else fits_x and r["top"] >= 0 and r["bottom"] <= vh
+
+    def has_horizontal_scroll(self) -> bool:
+        """Есть ли у страницы горизонтальная прокрутка (контент шире экрана)."""
+        return bool(self.driver.execute_script(
+            "return document.documentElement.scrollWidth > window.innerWidth;"))
 
     # --- действия ---------------------------------------------------------
     def scroll_to(self, element: WebElement) -> WebElement:
