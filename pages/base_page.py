@@ -121,8 +121,11 @@ class BasePage:
 
     def has_horizontal_scroll(self) -> bool:
         """Есть ли у страницы горизонтальная прокрутка (контент шире экрана)."""
-        return bool(self.driver.execute_script(
-            "return document.documentElement.scrollWidth > window.innerWidth;"))
+        return bool(
+            self.driver.execute_script(
+                "return document.documentElement.scrollWidth > window.innerWidth;"
+            )
+        )
 
     # --- действия ---------------------------------------------------------
     def scroll_to(self, element: WebElement) -> WebElement:

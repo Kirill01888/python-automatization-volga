@@ -190,10 +190,11 @@ class TestFormModal:
 @allure.feature("Модальные окна")
 @allure.story("Мобильный экран")
 class TestModalsMobile:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
-    @allure.title("Мобильный экран 375×812: оба окна помещаются по ширине, всё содержимое доступно, закрываются «×»")
+    @allure.title(
+        "Мобильный экран 375×812: оба окна помещаются по ширине, всё содержимое доступно, закрываются «×»"
+    )
     def test_modals_on_mobile_viewport(self, driver):
         """Цель: проверить, что модальные окна пригодны для использования на
         экране смартфона — адаптивная вёрстка Popup Maker растягивает окна
@@ -211,16 +212,24 @@ class TestModalsMobile:
         page.set_viewport(375, 812)
         page.open()
         width, height = page.get_viewport()
-        allure.attach(f"{width}×{height}", name="Фактический размер видимой области",
-                      attachment_type=allure.attachment_type.TEXT)
+        allure.attach(
+            f"{width}×{height}",
+            name="Фактический размер видимой области",
+            attachment_type=allure.attachment_type.TEXT,
+        )
         errors = []
 
         try:
             with allure.step("Simple Modal на мобильном экране"):
                 page.open_modal("simple")
-                allure.attach(str(page.get_rect(page.container("simple"))),
-                              name="Границы Simple Modal", attachment_type=allure.attachment_type.TEXT)
-                assert page.is_inside_viewport(page.container("simple")), "Simple Modal не помещается в экран"
+                allure.attach(
+                    str(page.get_rect(page.container("simple"))),
+                    name="Границы Simple Modal",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
+                assert page.is_inside_viewport(page.container("simple")), (
+                    "Simple Modal не помещается в экран"
+                )
                 assert page.get_modal_title("simple") == SIMPLE_TITLE
                 assert page.get_modal_text("simple") == SIMPLE_TEXT
                 assert page.is_inside_viewport(page.close_button("simple")), "Кнопка «×» вне экрана"
@@ -232,18 +241,27 @@ class TestModalsMobile:
         try:
             with allure.step("Form Modal на мобильном экране"):
                 page.open_modal("form")
-                allure.attach(str(page.get_rect(page.container("form"))),
-                              name="Границы Form Modal", attachment_type=allure.attachment_type.TEXT)
+                allure.attach(
+                    str(page.get_rect(page.container("form"))),
+                    name="Границы Form Modal",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
                 with allure.step("Окно помещается по ширине, горизонтальной прокрутки нет"):
-                    assert page.is_inside_viewport(page.container("form"), horizontal_only=True), \
+                    assert page.is_inside_viewport(page.container("form"), horizontal_only=True), (
                         "Form Modal шире экрана"
-                    assert not page.has_horizontal_scroll(), "У страницы появилась горизонтальная прокрутка"
+                    )
+                    assert not page.has_horizontal_scroll(), (
+                        "У страницы появилась горизонтальная прокрутка"
+                    )
                 with allure.step("Кнопка «×» в видимой области"):
-                    assert page.is_inside_viewport(page.close_button("form")), "Кнопка «×» вне экрана"
+                    assert page.is_inside_viewport(page.close_button("form")), (
+                        "Кнопка «×» вне экрана"
+                    )
                 with allure.step("Поля Name, Email, Message видны"):
                     visible = page.are_form_fields_visible()
-                    assert all(visible[k] for k in ("Name", "Email", "Message")), \
+                    assert all(visible[k] for k in ("Name", "Email", "Message")), (
                         f"Не видны: {[k for k, v in visible.items() if not v]}"
+                    )
                 with allure.step("После прокрутки к Submit кнопка в видимой области"):
                     page.scroll_into_view(page.SUBMIT)
                     assert page.is_inside_viewport(page.SUBMIT), "Кнопка Submit недоступна"
@@ -410,7 +428,9 @@ class TestModalsNegative:
             name="Размеры поля и окна",
             attachment_type=allure.attachment_type.TEXT,
         )
-        with allure.step(f"Растяжка сработала — ширина поля изменилась ({before['width']} → {after['width']})"):
+        with allure.step(
+            f"Растяжка сработала — ширина поля изменилась ({before['width']} → {after['width']})"
+        ):
             assert after["width"] > before["width"], (
                 f"Уголок не потянулся: ширина {before['width']} → {after['width']} "
                 f"(resize: {resize}) — проверка невозможна"
