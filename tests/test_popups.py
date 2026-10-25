@@ -3,6 +3,7 @@
 Alert, confirm и prompt — встроенные диалоги браузера: Selenium работает
 с ними через driver.switch_to.alert (методы BasePage: accept/dismiss/type).
 """
+
 import allure
 import pytest
 from selenium.common.exceptions import UnexpectedAlertPresentException
@@ -39,7 +40,6 @@ def check_no_dialog(page: PopupsPage) -> None:
 @allure.feature("Всплывающие окна (Popups)")
 @allure.story("Alert")
 class TestAlert:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
     @allure.title("Страница открывается: 3 кнопки диалогов, результаты пустые, подсказка скрыта")
@@ -54,7 +54,10 @@ class TestAlert:
         with allure.step("Заголовок и кнопки «Alert Popup», «Confirm Popup», «Prompt Popup»"):
             assert page.is_heading_visible(), "Заголовок 'Popups' не отображается"
             assert page.get_button_texts() == {
-                "alert": "Alert Popup", "confirm": "Confirm Popup", "prompt": "Prompt Popup"}
+                "alert": "Alert Popup",
+                "confirm": "Confirm Popup",
+                "prompt": "Prompt Popup",
+            }
         with allure.step("Результаты confirm и prompt пустые"):
             assert page.get_confirm_result() == ""
             assert page.get_prompt_result() == ""
@@ -86,7 +89,6 @@ class TestAlert:
 @allure.feature("Всплывающие окна (Popups)")
 @allure.story("Confirm")
 class TestConfirm:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title(f"Confirm → OK: результат «{CONFIRM_OK}»")
@@ -131,7 +133,11 @@ class TestConfirm:
         Ожидаемый результат: при последовательных ответах OK → Cancel → OK
         результат меняется на «OK it is!» → «Cancel it is!» → «OK it is!».
         """
-        for action, expected in (("ok", CONFIRM_OK), ("cancel", CONFIRM_CANCEL), ("ok", CONFIRM_OK)):
+        for action, expected in (
+            ("ok", CONFIRM_OK),
+            ("cancel", CONFIRM_CANCEL),
+            ("ok", CONFIRM_OK),
+        ):
             page.click_confirm()
             page.accept_alert() if action == "ok" else page.dismiss_alert()
             with allure.step(f"Результат «{expected}»"):
@@ -145,7 +151,6 @@ class TestConfirm:
 @allure.feature("Всплывающие окна (Popups)")
 @allure.story("Prompt")
 class TestPrompt:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Prompt с именем «Kirill» → OK: «Nice to meet you, Kirill!»")
@@ -190,7 +195,6 @@ class TestPrompt:
 @allure.feature("Всплывающие окна (Popups)")
 @allure.story("Подсказка (tooltip)")
 class TestTooltip:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title(f"Клик по «click me to see a tooltip» показывает подсказку «{TOOLTIP_TEXT}»")
@@ -232,7 +236,6 @@ class TestTooltip:
 @allure.feature("Всплывающие окна (Popups)")
 @allure.story("Негативные сценарии")
 class TestPopupsNegative:
-
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title(f"Prompt без ввода → OK: «{PROMPT_EMPTY}»")
@@ -279,7 +282,9 @@ class TestPopupsNegative:
         """
         page.click_alert()
         assert page.is_alert_present(), "Alert не появился"
-        with allure.step("Попытка нажать «Confirm Popup» при открытом alert → UnexpectedAlertPresentException"):
+        with allure.step(
+            "Попытка нажать «Confirm Popup» при открытом alert → UnexpectedAlertPresentException"
+        ):
             with pytest.raises(UnexpectedAlertPresentException):
                 page.driver.find_element(*page.CONFIRM_BTN).click()
         with allure.step("Confirm не сработал: результат пустой"):

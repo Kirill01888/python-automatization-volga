@@ -1,4 +1,5 @@
 """Тесты страницы Modals: https://practice-automation.com/modals/"""
+
 import allure
 import pytest
 
@@ -27,8 +28,9 @@ def page(driver) -> ModalsPage:
 def check_closed(page: ModalsPage, kind: str) -> None:
     with allure.step(f"Окно «{page.name_of(kind)}» и затемнение скрыты, кнопки страницы доступны"):
         assert page.wait_modal_closed(kind), f"Окно «{page.name_of(kind)}» не закрылось"
-        assert page.is_trigger_clickable("simple") and page.is_trigger_clickable("form"), \
+        assert page.is_trigger_clickable("simple") and page.is_trigger_clickable("form"), (
             "Кнопки страницы недоступны после закрытия окна"
+        )
 
 
 # ==========================================================================
@@ -38,10 +40,11 @@ def check_closed(page: ModalsPage, kind: str) -> None:
 @allure.feature("Модальные окна")
 @allure.story("Simple Modal")
 class TestSimpleModal:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
-    @allure.title("Страница открывается: заголовок и кнопки «Simple Modal», «Form Modal»; окна скрыты")
+    @allure.title(
+        "Страница открывается: заголовок и кнопки «Simple Modal», «Form Modal»; окна скрыты"
+    )
     def test_page_initial_state(self, page):
         """Цель: убедиться, что страница загружается в исходном состоянии — кнопки
         вызова окон на месте и ни одно окно не открыто само.
@@ -59,7 +62,9 @@ class TestSimpleModal:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Кнопка «Simple Modal» открывает окно с затемнением, заголовком, текстом и кнопкой «×»")
+    @allure.title(
+        "Кнопка «Simple Modal» открывает окно с затемнением, заголовком, текстом и кнопкой «×»"
+    )
     def test_simple_modal_opens(self, page):
         """Цель: проверить, что кнопка «Simple Modal» открывает именно своё окно
         с правильным содержимым и средством закрытия.
@@ -102,10 +107,11 @@ class TestSimpleModal:
 @allure.feature("Модальные окна")
 @allure.story("Form Modal")
 class TestFormModal:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Кнопка «Form Modal» открывает окно с формой: Name (required), Email, Message, Submit")
+    @allure.title(
+        "Кнопка «Form Modal» открывает окно с формой: Name (required), Email, Message, Submit"
+    )
     def test_form_modal_opens(self, page):
         """Цель: проверить, что кнопка «Form Modal» открывает окно с формой
         обратной связи и всеми её полями.
@@ -184,10 +190,11 @@ class TestFormModal:
 @allure.feature("Модальные окна")
 @allure.story("Отправка формы")
 class TestFormSubmit:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
-    @allure.title("Форма со всеми заполненными полями отправляется: «Thank you for your response» с данными")
+    @allure.title(
+        "Форма со всеми заполненными полями отправляется: «Thank you for your response» с данными"
+    )
     def test_submit_all_fields(self, page):
         """Цель: проверить основной сценарий формы — отправку полностью
         заполненных данных из модального окна.
@@ -205,7 +212,9 @@ class TestFormSubmit:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Форма только с обязательным полем Name отправляется (Email и Message необязательны)")
+    @allure.title(
+        "Форма только с обязательным полем Name отправляется (Email и Message необязательны)"
+    )
     def test_submit_only_required(self, page):
         """Цель: убедиться, что для отправки достаточно единственного
         обязательного поля — Email и Message необязательны.
@@ -226,7 +235,6 @@ class TestFormSubmit:
 @allure.feature("Модальные окна")
 @allure.story("Негативные сценарии")
 class TestModalsNegative:
-
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Клик по затемнению вне окна не закрывает ни Simple Modal, ни Form Modal")
@@ -238,10 +246,13 @@ class TestModalsNegative:
         и Form Modal остаются открытыми.
         """
         for kind in ("simple", "form"):
-            with allure.step(f"«{page.name_of(kind)}»: клик по затемнению — окно остаётся открытым"):
+            with allure.step(
+                f"«{page.name_of(kind)}»: клик по затемнению — окно остаётся открытым"
+            ):
                 page.open_modal(kind).click_overlay(kind)
-                assert not page.wait_modal_closed(kind, timeout=1.5), \
+                assert not page.wait_modal_closed(kind, timeout=1.5), (
                     f"Окно «{page.name_of(kind)}» закрылось по клику на затемнение"
+                )
                 page.close_by_x(kind)
                 assert page.wait_modal_closed(kind)
 
@@ -267,7 +278,9 @@ class TestModalsNegative:
         ["abc", "user@", "@mail.ru", "user mail@example.com"],
         ids=["no_at", "no_domain", "no_local_part", "space_inside"],
     )
-    @allure.title("Некорректный Email «{bad_email}» не отправляется: «Please enter a valid email address»")
+    @allure.title(
+        "Некорректный Email «{bad_email}» не отправляется: «Please enter a valid email address»"
+    )
     def test_submit_invalid_email(self, page, bad_email):
         """Цель: проверить валидацию формата Email. Тест параметризован
         некорректными адресами: без «@», без домена, без имени, с пробелом.
@@ -278,7 +291,9 @@ class TestModalsNegative:
         page.open_modal("form").fill_form(name=NAME, email=bad_email).submit_form()
         with allure.step(f"Под полем Email ошибка «{EMAIL_ERROR}», успеха нет"):
             assert page.get_field_error("email") == EMAIL_ERROR
-            assert not page.is_success_visible(timeout=2), f"Форма с Email «{bad_email}» отправилась"
+            assert not page.is_success_visible(timeout=2), (
+                f"Форма с Email «{bad_email}» отправилась"
+            )
 
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
@@ -294,3 +309,40 @@ class TestModalsNegative:
         with allure.step("Под полем Name ошибка обязательного поля, успеха нет"):
             assert page.get_field_error("name") == REQUIRED_ERROR
             assert not page.is_success_visible(timeout=2), "Форма с Name из пробелов отправилась"
+
+    @pytest.mark.negative
+    @allure.severity(allure.severity_level.MINOR)
+    @pytest.mark.xfail(
+        reason="Известный дефект: поле Message растягивается мышью за правую границу "
+        "модального окна (размер textarea не ограничен шириной окна)",
+        strict=False,
+    )
+    @allure.title("Поле Message нельзя растянуть за пределы окна Form Modal")
+    def test_message_resize_stays_inside_modal(self, page):
+        """Цель: проверить, что поле Message, которое пользователь может растягивать
+        мышью за уголок, не выходит за границы модального окна — иначе вёрстка
+        окна ломается, часть поля оказывается поверх затемнения.
+
+        Ожидаемый результат: после попытки растянуть поле на 600 px вправо его
+        правая граница не выходит за правую границу окна Form Modal.
+        Тест помечен xfail — дефект воспроизводится вручную на десктопе.
+        """
+        page.open_modal("form")
+        resize = page.get_message_resize_style()
+        before = page.get_rect(page.MESSAGE)
+        page.drag_message_resize_handle(600, 100)
+        after = page.get_rect(page.MESSAGE)
+        modal = page.get_rect(page.container("form"))
+        allure.attach(
+            f"resize: {resize}\nMessage до: {before}\nMessage после: {after}\nОкно Form Modal: {modal}",
+            name="Размеры поля и окна",
+            attachment_type=allure.attachment_type.TEXT,
+        )
+        with allure.step("Растяжка сработала — размер поля изменился"):
+            assert after != before, f"Уголок не потянулся (resize: {resize}) — проверка невозможна"
+        with allure.step(
+            f"Правая граница поля ({after['right']}) не дальше правой границы окна ({modal['right']})"
+        ):
+            assert after["right"] <= modal["right"], (
+                f"Поле Message вышло за окно на {after['right'] - modal['right']:.0f} px"
+            )

@@ -1,4 +1,5 @@
 """Общие настройки тестового проекта."""
+
 import os
 
 BASE_URL = os.getenv("BASE_URL", "https://practice-automation.com").rstrip("/")

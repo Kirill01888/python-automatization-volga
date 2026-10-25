@@ -15,6 +15,7 @@
 
 Значение в поле меняется только после клика по дню.
 """
+
 from dataclasses import dataclass
 from datetime import date, timedelta
 
@@ -27,8 +28,18 @@ from selenium.webdriver.remote.webelement import WebElement
 from pages.base_page import BasePage
 
 MONTHS = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
 ]
 
 
@@ -45,6 +56,7 @@ def month_shift(year: int, month: int, delta: int) -> tuple[int, int]:
 @dataclass
 class DayCell:
     """Кнопка дня в сетке календаря с вычисленной датой."""
+
     date: date
     element: WebElement
     is_edge: bool
@@ -241,10 +253,13 @@ class CalendarsPage(BasePage):
         return self
 
     def get_year_menu(self) -> list[int]:
-        return [int(v) for v in self.driver.execute_script(
-            "return Array.from(document.querySelectorAll('.dp-below .dp-year'))"
-            ".map(b => b.getAttribute('data-year'));"
-        )]
+        return [
+            int(v)
+            for v in self.driver.execute_script(
+                "return Array.from(document.querySelectorAll('.dp-below .dp-year'))"
+                ".map(b => b.getAttribute('data-year'));"
+            )
+        ]
 
     def choose_year(self, year: int):
         with allure.step(f"Выбрать в меню год {year}"):
@@ -262,7 +277,9 @@ class CalendarsPage(BasePage):
         return min(years), max(years)
 
     def go_to(self, year: int, month: int):
-        with allure.step(f"Перейти в календаре на {MONTHS[month - 1]} {year} через меню года и месяца"):
+        with allure.step(
+            f"Перейти в календаре на {MONTHS[month - 1]} {year} через меню года и месяца"
+        ):
             self.open_picker()
             if self.get_header_year() != year:
                 self.open_year_menu().choose_year(year)
@@ -287,11 +304,17 @@ class CalendarsPage(BasePage):
             else:
                 seen_current = True
                 y, m = year, month
-            cells.append(DayCell(
-                date=date(y, m, int(text)), element=element, is_edge=is_edge,
-                is_selected="dp-selected" in cls, is_current="dp-current" in cls,
-                is_today="dp-day-today" in cls, is_disabled="dp-day-disabled" in cls,
-            ))
+            cells.append(
+                DayCell(
+                    date=date(y, m, int(text)),
+                    element=element,
+                    is_edge=is_edge,
+                    is_selected="dp-selected" in cls,
+                    is_current="dp-current" in cls,
+                    is_today="dp-day-today" in cls,
+                    is_disabled="dp-day-disabled" in cls,
+                )
+            )
         return cells
 
     def get_month_days(self) -> list[date]:
@@ -331,7 +354,8 @@ class CalendarsPage(BasePage):
         self.driver.execute_script("arguments[0].focus();", cell.element)
         allure.attach(
             self.driver.get_screenshot_as_png(),
-            name=title, attachment_type=allure.attachment_type.PNG,
+            name=title,
+            attachment_type=allure.attachment_type.PNG,
         )
         cell.element.click()
         self.wait_picker_closed()

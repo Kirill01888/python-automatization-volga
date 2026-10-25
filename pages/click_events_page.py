@@ -5,6 +5,7 @@
 
     Cat → «Meow!»   Dog → «Woof!»   Pig → «Oink!»   Cow → «Moo!»
 """
+
 import allure
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
@@ -85,11 +86,13 @@ class ClickEventsPage(BasePage):
     def press_and_release_outside(self, animal: str):
         """Зажать кнопку мыши на кнопке и отпустить на заголовке страницы."""
         with allure.step(f"Зажать мышь на «{animal}», увести курсор и отпустить на заголовке"):
-            ActionChains(self.driver) \
-                .click_and_hold(self._button(animal)) \
-                .move_to_element(self.find(self.HEADING)) \
-                .release() \
+            (
+                ActionChains(self.driver)
+                .click_and_hold(self._button(animal))
+                .move_to_element(self.find(self.HEADING))
+                .release()
                 .perform()
+            )
         return self
 
     def click_non_buttons(self):

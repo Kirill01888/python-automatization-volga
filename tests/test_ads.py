@@ -3,6 +3,7 @@
 Реклама — окно Popup Maker, открывается автоматически через 4,5 с после
 загрузки, закрывается только кнопкой «×», cookie не используется.
 """
+
 import allure
 import pytest
 
@@ -45,10 +46,11 @@ def check_ad_closed(page: AdsPage) -> None:
 @allure.feature("Рекламные окна")
 @allure.story("Появление")
 class TestAdAppearance:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
-    @allure.title("Страница открывается: заголовок «Ads», текст с отсчётом, ссылка; рекламы ещё нет")
+    @allure.title(
+        "Страница открывается: заголовок «Ads», текст с отсчётом, ссылка; рекламы ещё нет"
+    )
     def test_page_initial_state(self, page):
         """Цель: убедиться, что страница загружается в исходном состоянии и реклама
         не перекрывает её с первой секунды.
@@ -58,7 +60,9 @@ class TestAdAppearance:
         «how to handle ads in test automation».
         """
         # Проверяем первым шагом: через 4,5 с реклама появится по расписанию
-        with allure.step(f"Сразу после загрузки ({page.seconds_since_load():.1f} с) реклама ещё не показана"):
+        with allure.step(
+            f"Сразу после загрузки ({page.seconds_since_load():.1f} с) реклама ещё не показана"
+        ):
             assert not page.is_ad_visible(timeout=0), "Реклама показана сразу после загрузки"
         with allure.step("Заголовок, текст с отсчётом и ссылка видны"):
             assert page.is_heading_visible(), "Заголовок 'Ads' не отображается"
@@ -77,12 +81,18 @@ class TestAdAppearance:
         прикладывается к отчёту.
         """
         elapsed = page.wait_for_ad()
-        with allure.step(f"Реклама появилась через {elapsed:.1f} с — в интервале {NOT_BEFORE}–{page.AD_WAIT_TIMEOUT} с"):
-            assert NOT_BEFORE <= elapsed <= page.AD_WAIT_TIMEOUT, f"Реклама появилась через {elapsed:.1f} с"
+        with allure.step(
+            f"Реклама появилась через {elapsed:.1f} с — в интервале {NOT_BEFORE}–{page.AD_WAIT_TIMEOUT} с"
+        ):
+            assert NOT_BEFORE <= elapsed <= page.AD_WAIT_TIMEOUT, (
+                f"Реклама появилась через {elapsed:.1f} с"
+            )
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Окно рекламы: затемнение, заголовок «Hi», текст «I am an ad.», кнопка «×», role=dialog")
+    @allure.title(
+        "Окно рекламы: затемнение, заголовок «Hi», текст «I am an ad.», кнопка «×», role=dialog"
+    )
     def test_ad_content(self, page_with_ad):
         """Цель: проверить, что показанное окно — полноценная модальная реклама
         с правильным содержимым и средством закрытия.
@@ -116,7 +126,9 @@ class TestAdAppearance:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
-    @allure.title("Мобильный экран 375×812: реклама появляется, помещается в экран и закрывается «×»")
+    @allure.title(
+        "Мобильный экран 375×812: реклама появляется, помещается в экран и закрывается «×»"
+    )
     def test_ad_on_mobile_viewport(self, driver):
         """Цель: проверить рекламу на экране смартфона (375×812): адаптивное окно
         должно оставаться видимым целиком и закрываемым.
@@ -127,8 +139,11 @@ class TestAdAppearance:
         """
         page = AdsPage(driver)
         width, height = page.set_viewport(375, 812)
-        allure.attach(f"{width}×{height}", name="Фактический размер видимой области",
-                      attachment_type=allure.attachment_type.TEXT)
+        allure.attach(
+            f"{width}×{height}",
+            name="Фактический размер видимой области",
+            attachment_type=allure.attachment_type.TEXT,
+        )
         page.open().wait_for_ad()
         with allure.step("Окно рекламы помещается в экран"):
             assert page.is_ad_inside_viewport(), "Окно рекламы выходит за границы экрана"
@@ -143,7 +158,6 @@ class TestAdAppearance:
 @allure.feature("Рекламные окна")
 @allure.story("Закрытие")
 class TestAdClosing:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
     @allure.title("Реклама закрывается кнопкой «×»")
@@ -181,7 +195,6 @@ class TestAdClosing:
 @allure.feature("Рекламные окна")
 @allure.story("Повторный показ")
 class TestAdReappearance:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Закрытая реклама не появляется повторно без перезагрузки страницы")
@@ -225,10 +238,11 @@ class TestAdReappearance:
 @allure.feature("Рекламные окна")
 @allure.story("Негативные сценарии")
 class TestAdNegative:
-
     @pytest.mark.negative
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title(f"Реклама не появляется раньше задержки: первые {NOT_BEFORE} с после загрузки окна нет")
+    @allure.title(
+        f"Реклама не появляется раньше задержки: первые {NOT_BEFORE} с после загрузки окна нет"
+    )
     def test_ad_not_shown_before_delay(self, page):
         """Цель: убедиться, что реклама не показывается раньше заданной задержки —
         пользователь успевает увидеть страницу.
@@ -237,8 +251,9 @@ class TestAdNegative:
         всё же появляется (тест не проходит «впустую»).
         """
         with allure.step(f"До {NOT_BEFORE} с после загрузки реклама не показана"):
-            assert page.is_ad_absent_until(NOT_BEFORE), \
+            assert page.is_ad_absent_until(NOT_BEFORE), (
                 f"Реклама появилась раньше {NOT_BEFORE} с (через {page.seconds_since_load():.1f} с)"
+            )
         with allure.step("Затем реклама всё-таки появляется"):
             page.wait_for_ad()
 
@@ -267,7 +282,9 @@ class TestAdNegative:
         """
         page_with_ad.click_overlay()
         with allure.step("Окно рекламы остаётся открытым"):
-            assert not page_with_ad.wait_ad_hidden(timeout=1.5), "Реклама закрылась по клику на затемнение"
+            assert not page_with_ad.wait_ad_hidden(timeout=1.5), (
+                "Реклама закрылась по клику на затемнение"
+            )
 
     @pytest.mark.negative
     @allure.severity(allure.severity_level.CRITICAL)
@@ -293,7 +310,9 @@ class TestAdNegative:
 
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
-    @allure.title("Пока реклама открыта, страница не прокручивается — ни колесом мыши, ни клавишами")
+    @allure.title(
+        "Пока реклама открыта, страница не прокручивается — ни колесом мыши, ни клавишами"
+    )
     def test_scroll_blocked_while_ad_open(self, driver):
         """Цель: проверить, что пока реклама открыта, страница под ней не
         прокручивается — Popup Maker блокирует прокрутку
@@ -314,12 +333,14 @@ class TestAdNegative:
         start = page.get_scroll_y()
         page.scroll_by_wheel(600)
         with allure.step("После прокрутки колесом позиция страницы не изменилась"):
-            assert not page.wait_scroll_changed(start, timeout=1.5), \
+            assert not page.wait_scroll_changed(start, timeout=1.5), (
                 f"Страница прокрутилась: scrollY {start} → {page.get_scroll_y()}"
+            )
         page.scroll_by_keys()
         with allure.step("После PageDown и End позиция страницы не изменилась"):
-            assert not page.wait_scroll_changed(start, timeout=1.5), \
+            assert not page.wait_scroll_changed(start, timeout=1.5), (
                 f"Страница прокрутилась: scrollY {start} → {page.get_scroll_y()}"
+            )
         with allure.step("Реклама всё ещё открыта"):
             assert page.is_ad_visible(timeout=1)
 
@@ -327,4 +348,6 @@ class TestAdNegative:
         check_ad_closed(page)
         page.scroll_by_wheel(600)
         with allure.step("Контроль: после закрытия рекламы страница прокручивается"):
-            assert page.wait_scroll_changed(start, timeout=3), "Страница не прокручивается и после закрытия"
+            assert page.wait_scroll_changed(start, timeout=3), (
+                "Страница не прокручивается и после закрытия"
+            )

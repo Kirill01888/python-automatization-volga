@@ -14,6 +14,7 @@
 submitForm(): alert «Message received!», затем очищает все поля; отправка
 на сервер отменяется. Пустое Name блокирует встроенная проверка браузера (required).
 """
+
 import allure
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
@@ -79,12 +80,16 @@ class FormFieldsPage(BasePage):
         return self.driver.find_element(*self.MESSAGE).get_attribute("placeholder") or ""
 
     def get_drink_labels(self) -> list[str]:
-        return [self.driver.find_element(By.CSS_SELECTOR, f"label[for='drink{i}']").text.strip()
-                for i in range(1, len(DRINKS) + 1)]
+        return [
+            self.driver.find_element(By.CSS_SELECTOR, f"label[for='drink{i}']").text.strip()
+            for i in range(1, len(DRINKS) + 1)
+        ]
 
     def get_color_labels(self) -> list[str]:
-        return [self.driver.find_element(By.CSS_SELECTOR, f"label[for='color{i}']").text.strip()
-                for i in range(1, len(COLORS) + 1)]
+        return [
+            self.driver.find_element(By.CSS_SELECTOR, f"label[for='color{i}']").text.strip()
+            for i in range(1, len(COLORS) + 1)
+        ]
 
     def get_checked_drinks(self) -> list[str]:
         return [d for d in DRINKS if self.driver.find_element(*self.drink(d)).is_selected()]
@@ -103,8 +108,11 @@ class FormFieldsPage(BasePage):
         """Пункты раздела Automation tools — средствами Selenium (find_elements)."""
         with allure.step("Получить список элементов раздела «Automation tools»"):
             tools = [li.text.strip() for li in self.find_all(self.TOOLS)]
-            allure.attach("\n".join(tools), name="Automation tools",
-                          attachment_type=allure.attachment_type.TEXT)
+            allure.attach(
+                "\n".join(tools),
+                name="Automation tools",
+                attachment_type=allure.attachment_type.TEXT,
+            )
         return tools
 
     def get_name_validity(self) -> tuple[bool, str]:

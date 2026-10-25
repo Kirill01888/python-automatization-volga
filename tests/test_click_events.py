@@ -1,4 +1,5 @@
 """Тесты страницы Click Events: https://practice-automation.com/click-events/"""
+
 import allure
 import pytest
 from selenium.webdriver.common.keys import Keys
@@ -17,7 +18,9 @@ def page(driver) -> ClickEventsPage:
 
 def check_result(page: ClickEventsPage, expected: str) -> None:
     with allure.step(f"В поле результата «{expected}»" if expected else "Поле результата пустое"):
-        assert page.wait_result(expected), f"В поле результата «{page.get_result()}», ожидалось «{expected}»"
+        assert page.wait_result(expected), (
+            f"В поле результата «{page.get_result()}», ожидалось «{expected}»"
+        )
 
 
 # ==========================================================================
@@ -27,7 +30,6 @@ def check_result(page: ClickEventsPage, expected: str) -> None:
 @allure.feature("События (Click Events)")
 @allure.story("Клики по кнопкам")
 class TestClickEvents:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
     @allure.title("Страница открывается: 4 кнопки Cat, Dog, Pig, Cow; поле результата пустое")
@@ -128,7 +130,6 @@ class TestClickEvents:
 @allure.feature("События (Click Events)")
 @allure.story("Негативные сценарии")
 class TestClickEventsNegative:
-
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Наведение курсора без клика не показывает звук")

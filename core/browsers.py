@@ -4,6 +4,7 @@
 драйвер, а при необходимости и сам браузер (Chrome for Testing / Firefox),
 скачиваются автоматически. Ручная настройка не требуется.
 """
+
 from collections.abc import Callable
 
 from selenium import webdriver
@@ -64,8 +65,7 @@ def parse_browsers(value: str) -> list[str]:
     unknown = [n for n in names if n not in BROWSERS]
     if unknown:
         raise ValueError(
-            f"Неизвестный браузер: {', '.join(unknown)}. "
-            f"Доступны: {', '.join(BROWSERS)} или all"
+            f"Неизвестный браузер: {', '.join(unknown)}. Доступны: {', '.join(BROWSERS)} или all"
         )
     return names
 

@@ -3,6 +3,7 @@
 Включает пункт 5 задания: поле Message заполняется списком элементов
 раздела Automation tools, полученным средствами Selenium, через запятую.
 """
+
 import allure
 import pytest
 
@@ -15,8 +16,15 @@ PASSWORD = "Secret#123"
 EMAIL = "autotest.user@example.com"
 MESSAGE = "Autotest message"
 EXPECTED_TOOLS = ["Selenium", "Playwright", "Cypress", "Appium", "Katalon Studio"]
-EMPTY_FORM = {"name": "", "password": "", "drinks": [], "colors": [],
-              "automation": "", "email": "", "message": ""}
+EMPTY_FORM = {
+    "name": "",
+    "password": "",
+    "drinks": [],
+    "colors": [],
+    "automation": "",
+    "email": "",
+    "message": "",
+}
 
 
 @pytest.fixture
@@ -45,7 +53,6 @@ def check_not_submitted(page: FormFieldsPage) -> None:
 @allure.feature("Форма (Form Fields)")
 @allure.story("Отправка формы")
 class TestFormSubmit:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
     @allure.title("Страница открывается: все поля формы на месте, форма пустая")
@@ -65,7 +72,9 @@ class TestFormSubmit:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
-    @allure.title("Пункт 5 задания: Message = список Automation tools через запятую, форма отправляется")
+    @allure.title(
+        "Пункт 5 задания: Message = список Automation tools через запятую, форма отправляется"
+    )
     def test_message_from_automation_tools(self, page):
         page.fill_name(NAME)
         text = page.fill_message_with_tools()
@@ -85,8 +94,14 @@ class TestFormSubmit:
         page.fill_email(EMAIL).fill_message(MESSAGE)
         with allure.step("Перед отправкой все значения на месте"):
             assert page.get_form_state() == {
-                "name": NAME, "password": PASSWORD, "drinks": ["Coffee", "Ctrl-Alt-Delight"],
-                "colors": ["Blue"], "automation": "yes", "email": EMAIL, "message": MESSAGE}
+                "name": NAME,
+                "password": PASSWORD,
+                "drinks": ["Coffee", "Ctrl-Alt-Delight"],
+                "colors": ["Blue"],
+                "automation": "yes",
+                "email": EMAIL,
+                "message": MESSAGE,
+            }
         page.submit()
         check_submitted(page)
 
@@ -99,7 +114,9 @@ class TestFormSubmit:
         page.fill_email(EMAIL).fill_message(MESSAGE)
         page.submit()
         check_submitted(page)
-        with allure.step("Name, Password, Email, Message пустые; чекбоксы, радиокнопки и список сброшены"):
+        with allure.step(
+            "Name, Password, Email, Message пустые; чекбоксы, радиокнопки и список сброшены"
+        ):
             assert page.get_form_state() == EMPTY_FORM
 
     @pytest.mark.positive
@@ -117,7 +134,6 @@ class TestFormSubmit:
 @allure.feature("Форма (Form Fields)")
 @allure.story("Элементы формы")
 class TestFormControls:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Чекбоксы напитков отмечаются независимо, повторный клик снимает отметку")
@@ -141,7 +157,9 @@ class TestFormControls:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
-    @allure.title("Выпадающий список «Do you like automation?»: по умолчанию пусто, выбираются Yes, No, Undecided")
+    @allure.title(
+        "Выпадающий список «Do you like automation?»: по умолчанию пусто, выбираются Yes, No, Undecided"
+    )
     def test_automation_select(self, page):
         with allure.step("По умолчанию выбран пустой вариант"):
             assert page.get_automation_value() == "default"
@@ -167,10 +185,11 @@ class TestFormControls:
 @allure.feature("Форма (Form Fields)")
 @allure.story("Негативные сценарии")
 class TestFormNegative:
-
     @pytest.mark.negative
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Без Name форма не отправляется: браузер помечает поле невалидным, данные сохраняются")
+    @allure.title(
+        "Без Name форма не отправляется: браузер помечает поле невалидным, данные сохраняются"
+    )
     def test_submit_without_name(self, page):
         page.toggle_drink("Water").fill_email(EMAIL).fill_message(MESSAGE)
         page.submit()
@@ -186,8 +205,11 @@ class TestFormNegative:
 
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.xfail(reason="Известный дефект: атрибут required считает пробелы заполнением, "
-                              "Name из одних пробелов принимается", strict=False)
+    @pytest.mark.xfail(
+        reason="Известный дефект: атрибут required считает пробелы заполнением, "
+        "Name из одних пробелов принимается",
+        strict=False,
+    )
     @allure.title("Name из одних пробелов не должно считаться заполненным")
     def test_submit_whitespace_name(self, page):
         page.fill_name("     ").submit()
@@ -195,8 +217,11 @@ class TestFormNegative:
 
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.xfail(reason="Известный дефект: Email — обычное текстовое поле без проверки формата, "
-                              "некорректный адрес принимается вопреки подсказке «No fake emails!»", strict=False)
+    @pytest.mark.xfail(
+        reason="Известный дефект: Email — обычное текстовое поле без проверки формата, "
+        "некорректный адрес принимается вопреки подсказке «No fake emails!»",
+        strict=False,
+    )
     @pytest.mark.parametrize("bad_email", ["abc", "user@"], ids=["no_at", "no_domain"])
     @allure.title("Некорректный Email «{bad_email}» не должен приниматься")
     def test_submit_invalid_email(self, page, bad_email):

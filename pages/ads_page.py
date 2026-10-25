@@ -14,6 +14,7 @@
     анимация fade 650 мс.
 Пока окно открыто, у <html> есть классы pum-open / pum-open-overlay.
 """
+
 import time
 
 import allure
@@ -29,8 +30,8 @@ from pages.base_page import BasePage
 class AdsPage(BasePage):
     PATH = "/ads/"
 
-    AD_DELAY = 4.5          # задержка auto_open из настроек попапа, с
-    AD_WAIT_TIMEOUT = 12    # с запасом на загрузку страницы и анимацию
+    AD_DELAY = 4.5  # задержка auto_open из настроек попапа, с
+    AD_WAIT_TIMEOUT = 12  # с запасом на загрузку страницы и анимацию
 
     HEADING = (By.XPATH, "//h1[normalize-space()='Ads']")
     COUNTDOWN = (By.XPATH, "//p[contains(normalize-space(.), 'An ad will appear in')]")
@@ -67,9 +68,15 @@ class AdsPage(BasePage):
         Возвращает фактические window.innerWidth / innerHeight."""
         with allure.step(f"Установить размер экрана {width}×{height}"):
             if hasattr(self.driver, "execute_cdp_cmd"):
-                self.driver.execute_cdp_cmd("Emulation.setDeviceMetricsOverride", {
-                    "width": width, "height": height, "deviceScaleFactor": 1, "mobile": True,
-                })
+                self.driver.execute_cdp_cmd(
+                    "Emulation.setDeviceMetricsOverride",
+                    {
+                        "width": width,
+                        "height": height,
+                        "deviceScaleFactor": 1,
+                        "mobile": True,
+                    },
+                )
             else:
                 self.driver.set_window_size(width, height)
         return self.get_viewport()
@@ -122,8 +129,11 @@ class AdsPage(BasePage):
         with allure.step("Дождаться автоматического появления рекламы"):
             self.find_visible(self.AD, self.AD_WAIT_TIMEOUT if timeout is None else timeout)
             elapsed = self.seconds_since_load()
-            allure.attach(f"{elapsed:.2f} с после загрузки страницы (задержка в настройках {self.AD_DELAY} с)",
-                          name="Время появления рекламы", attachment_type=allure.attachment_type.TEXT)
+            allure.attach(
+                f"{elapsed:.2f} с после загрузки страницы (задержка в настройках {self.AD_DELAY} с)",
+                name="Время появления рекламы",
+                attachment_type=allure.attachment_type.TEXT,
+            )
         return elapsed
 
     def is_ad_absent_until(self, seconds_after_load: float) -> bool:
@@ -154,10 +164,14 @@ class AdsPage(BasePage):
         overlay = self.driver.find_element(*self.OVERLAY)
         try:
             WebDriverWait(self.driver, timeout).until(
-                lambda _: overlay.get_attribute("aria-modal") == "true")
+                lambda _: overlay.get_attribute("aria-modal") == "true"
+            )
         except TimeoutException:
             pass  # вернём фактическое значение — тест покажет расхождение
-        return {"role": overlay.get_attribute("role"), "aria-modal": overlay.get_attribute("aria-modal")}
+        return {
+            "role": overlay.get_attribute("role"),
+            "aria-modal": overlay.get_attribute("aria-modal"),
+        }
 
     def is_html_marked_open(self) -> bool:
         classes = self.driver.find_element(By.TAG_NAME, "html").get_attribute("class") or ""
@@ -173,10 +187,17 @@ class AdsPage(BasePage):
             """,
             ad,
         )
-        allure.attach(str({k: round(v) for k, v in rect.items()}), name="Положение окна рекламы",
-                      attachment_type=allure.attachment_type.TEXT)
-        return (rect["top"] >= 0 and rect["left"] >= 0
-                and rect["bottom"] <= rect["vh"] and rect["right"] <= rect["vw"])
+        allure.attach(
+            str({k: round(v) for k, v in rect.items()}),
+            name="Положение окна рекламы",
+            attachment_type=allure.attachment_type.TEXT,
+        )
+        return (
+            rect["top"] >= 0
+            and rect["left"] >= 0
+            and rect["bottom"] <= rect["vh"]
+            and rect["right"] <= rect["vw"]
+        )
 
     # ========================================================================
     # Прокрутка страницы
@@ -192,11 +213,15 @@ class AdsPage(BasePage):
     def get_html_overflow(self) -> str:
         """Вычисленный overflow-y у <html>: Popup Maker ставит hidden, пока окно открыто."""
         return self.driver.execute_script(
-            "return getComputedStyle(document.documentElement).overflowY;")
+            "return getComputedStyle(document.documentElement).overflowY;"
+        )
 
     def is_page_scrollable(self) -> bool:
-        return bool(self.driver.execute_script(
-            "return document.documentElement.scrollHeight > window.innerHeight;"))
+        return bool(
+            self.driver.execute_script(
+                "return document.documentElement.scrollHeight > window.innerHeight;"
+            )
+        )
 
     def scroll_by_wheel(self, pixels: int = 600):
         with allure.step(f"Прокрутить колесом мыши на {pixels} px"):
@@ -205,14 +230,17 @@ class AdsPage(BasePage):
 
     def scroll_by_keys(self):
         with allure.step("Нажать PageDown и End"):
-            ActionChains(self.driver).send_keys(Keys.PAGE_DOWN).pause(0.3).send_keys(Keys.END).perform()
+            ActionChains(self.driver).send_keys(Keys.PAGE_DOWN).pause(0.3).send_keys(
+                Keys.END
+            ).perform()
         return self
 
     def wait_scroll_changed(self, from_y: float, timeout: float = 2) -> bool:
         """True, если позиция прокрутки страницы ушла с from_y за timeout секунд."""
         try:
             WebDriverWait(self.driver, timeout, poll_frequency=0.2).until(
-                lambda _: abs(self.get_scroll_y() - from_y) > 1)
+                lambda _: abs(self.get_scroll_y() - from_y) > 1
+            )
             return True
         except TimeoutException:
             return False

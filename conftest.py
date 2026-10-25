@@ -16,9 +16,7 @@ def pytest_addoption(parser):
         default="chrome",
         help="Браузер(ы) для запуска: chrome, firefox, edge — через запятую, или all",
     )
-    parser.addoption(
-        "--headless", action="store_true", help="Запуск браузера без окна"
-    )
+    parser.addoption("--headless", action="store_true", help="Запуск браузера без окна")
 
 
 def pytest_generate_tests(metafunc):
@@ -68,12 +66,12 @@ def _story(item) -> str | None:
 def _allure_suites(request):
     """Дерево вкладки Suites в Allure:
 
-        Календарь
-        ├── Позитивные
-        │   ├── Меню месяцев (Month picker)
-        │   └── ...
-        └── Негативные
-            └── Негативные сценарии
+    Календарь
+    ├── Позитивные
+    │   ├── Меню месяцев (Month picker)
+    │   └── ...
+    └── Негативные
+        └── Негативные сценарии
     """
     item = request.node
     page = next((name for mark, name in PAGE_SUITES.items() if item.get_closest_marker(mark)), None)
@@ -174,11 +172,13 @@ def pytest_sessionfinish(session):
             key, _, value = line.partition("=")
             if key:
                 env[key] = value
-    env.update({
-        "Base.URL": BASE_URL,
-        "Headless": str(session.config.getoption("--headless")),
-        "OS": f"{platform.system()} {platform.release()}",
-        "Python": platform.python_version(),
-    })
+    env.update(
+        {
+            "Base.URL": BASE_URL,
+            "Headless": str(session.config.getoption("--headless")),
+            "OS": f"{platform.system()} {platform.release()}",
+            "Python": platform.python_version(),
+        }
+    )
     env.update({f"Browser.{n}": v for n, v in _browser_versions.items()})
     env_file.write_text("\n".join(f"{k}={v}" for k, v in sorted(env.items())), encoding="utf-8")

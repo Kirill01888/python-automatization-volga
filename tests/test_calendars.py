@@ -4,6 +4,7 @@
 после клика по дню, поэтому в каждом сценарии после выбора месяца/года
 обязательно выбирается день.
 """
+
 import calendar
 from datetime import date
 
@@ -31,13 +32,16 @@ def page(driver) -> CalendarsPage:
 def check_selected(page: CalendarsPage, expected: date) -> None:
     """Общая проверка выбранной даты: поле, шапка календаря и выделение в сетке."""
     with allure.step(f"Проверить, что выбрана дата {fmt(expected)}"):
-        assert page.get_date_value() == expected.isoformat(), \
+        assert page.get_date_value() == expected.isoformat(), (
             f"Значение поля {page.get_date_value()!r}, ожидалось {expected.isoformat()!r}"
+        )
         page.open_picker()
-        assert page.get_picker_title() == title(expected.year, expected.month), \
+        assert page.get_picker_title() == title(expected.year, expected.month), (
             f"Календарь показывает {page.get_picker_title()!r}"
-        assert page.get_selected_dates() == [expected], \
+        )
+        assert page.get_selected_dates() == [expected], (
             f"В сетке выделено {page.get_selected_dates()}, ожидалось [{expected}]"
+        )
         page.press_escape()
 
 
@@ -51,10 +55,11 @@ pytestmark = [pytest.mark.calendars]
 @allure.feature("Календарь")
 @allure.story("Базовые сценарии")
 class TestCalendarBasics:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
-    @allure.title("Страница открывается: заголовок, поле даты с подписью и подсказкой формата, кнопка Submit")
+    @allure.title(
+        "Страница открывается: заголовок, поле даты с подписью и подсказкой формата, кнопка Submit"
+    )
     def test_page_elements(self, page):
         """Базовая проверка формы до любых действий пользователя:
         заголовок «Calendars», поле даты, кнопка Submit видны; подпись поля
@@ -72,7 +77,9 @@ class TestCalendarBasics:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Календарь открывается на текущем месяце, сегодня отмечено, сетка построена корректно")
+    @allure.title(
+        "Календарь открывается на текущем месяце, сегодня отмечено, сетка построена корректно"
+    )
     def test_picker_opens_with_correct_grid(self, page):
         """Клик по полю открывает календарь:
         1. В шапке текущий месяц и год, сегодняшний день отмечен.
@@ -90,14 +97,19 @@ class TestCalendarBasics:
             assert len(grid) == 42, f"В сетке {len(grid)} ячеек"
             assert grid[0].date.weekday() == 0, "Неделя начинается не с понедельника"
         with allure.step(f"Дней месяца: {last_day(year, month)}, бледные — соседние месяцы"):
-            assert page.get_month_days() == [date(year, month, d) for d in range(1, last_day(year, month) + 1)]
+            assert page.get_month_days() == [
+                date(year, month, d) for d in range(1, last_day(year, month) + 1)
+            ]
             for cell in page.get_edge_days():
-                assert (cell.date.year, cell.date.month) != (year, month), \
+                assert (cell.date.year, cell.date.month) != (year, month), (
                     f"Бледный день {cell.date} принадлежит текущему месяцу"
+                )
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.NORMAL)
-    @allure.title("Навигация стрелками: «>» — следующий месяц, «<» — предыдущий, «>» + «<» — исходный")
+    @allure.title(
+        "Навигация стрелками: «>» — следующий месяц, «<» — предыдущий, «>» + «<» — исходный"
+    )
     def test_arrow_navigation(self, page):
         current = title(TODAY.year, TODAY.month)
         nxt = title(*month_shift(TODAY.year, TODAY.month, 1))
@@ -115,7 +127,9 @@ class TestCalendarBasics:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Выбор даты кликом: в текущем месяце и в других месяцах через пагинацию стрелками")
+    @allure.title(
+        "Выбор даты кликом: в текущем месяце и в других месяцах через пагинацию стрелками"
+    )
     def test_select_date_by_click(self, page):
         """1. Клик по 10-му числу текущего месяца: дата в поле в формате
            YYYY-MM-DD, календарь закрылся, в сетке выделен этот день.
@@ -136,7 +150,9 @@ class TestCalendarBasics:
 
     @pytest.mark.positive
     @allure.severity(allure.severity_level.BLOCKER)
-    @allure.title("Ручной ввод синхронизирует календарь; введённая и выбранная даты успешно отправляются")
+    @allure.title(
+        "Ручной ввод синхронизирует календарь; введённая и выбранная даты успешно отправляются"
+    )
     def test_manual_input_and_submit(self, page):
         """1. Ввод 2027-03-18 вручную — календарь переключается на March 2027
            и подсвечивает 18-е; Submit — «Thank you for your response» с датой.
@@ -169,7 +185,6 @@ class TestCalendarBasics:
 @allure.feature("Календарь")
 @allure.story("Меню месяцев (Month picker)")
 class TestMonthPicker:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Меню месяцев: каждый из 12 пунктов даёт правильный номер месяца в поле и шапке")
@@ -187,11 +202,11 @@ class TestMonthPicker:
                 with allure.step(f"Месяц №{month} — {name}"):
                     page.open_picker().open_month_menu()
                     index, label = page.get_month_menu()[month - 1]
-                    assert name.startswith(label) or label.startswith(name[:3]), \
+                    assert name.startswith(label) or label.startswith(name[:3]), (
                         f"пункт data-month={index} подписан {label!r}"
+                    )
                     page.choose_month(month - 1)
-                    assert page.get_header_month() == name, \
-                        f"в шапке {page.get_header_month()!r}"
+                    assert page.get_header_month() == name, f"в шапке {page.get_header_month()!r}"
                     page.select_day(15)
                     check_selected(page, expected)
             except AssertionError as exc:
@@ -208,10 +223,11 @@ class TestMonthPicker:
 @allure.feature("Календарь")
 @allure.story("Меню годов (Year picker)")
 class TestYearPicker:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Меню годов: диапазон, граничные годы min/max, годы за пределами меню и 9999-12-31")
+    @allure.title(
+        "Меню годов: диапазон, граничные годы min/max, годы за пределами меню и 9999-12-31"
+    )
     def test_year_picker(self, page):
         """Комплексная проверка выбора года.
 
@@ -238,13 +254,19 @@ class TestYearPicker:
                 page.open_picker().open_year_menu()
                 years = page.get_year_menu()
                 year_min, year_max = min(years), max(years)
-                allure.attach(f"min={year_min}, max={year_max}, всего={len(years)}",
-                              name="Диапазон годов", attachment_type=allure.attachment_type.TEXT)
+                allure.attach(
+                    f"min={year_min}, max={year_max}, всего={len(years)}",
+                    name="Диапазон годов",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
                 page.press_escape()
-                assert sorted(years) == list(range(year_min, year_max + 1)), "в списке годов пропуски"
+                assert sorted(years) == list(range(year_min, year_max + 1)), (
+                    "в списке годов пропуски"
+                )
                 assert TODAY.year in years, "в меню нет текущего года"
-                assert (year_min, year_max) == (TODAY.year - 100, TODAY.year + 100), \
+                assert (year_min, year_max) == (TODAY.year - 100, TODAY.year + 100), (
                     f"диапазон {year_min}–{year_max}, ожидался {TODAY.year - 100}–{TODAY.year + 100}"
+                )
         except AssertionError as exc:
             errors.append(f"Диапазон: {exc}")
 
@@ -256,10 +278,13 @@ class TestYearPicker:
         # --- 2. Граничные годы из меню -------------------------------------
         for edge, target in [("min", date(year_min, 12, 15)), ("max", date(year_max, 1, 15))]:
             try:
-                with allure.step(f"2. Граничный год из меню ({edge} = {target.year}): выбрать {fmt(target)} и отправить"):
+                with allure.step(
+                    f"2. Граничный год из меню ({edge} = {target.year}): выбрать {fmt(target)} и отправить"
+                ):
                     page.open().open_picker().open_year_menu().choose_year(target.year)
-                    assert page.get_header_year() == target.year, \
+                    assert page.get_header_year() == target.year, (
                         f"в шапке {page.get_header_year()}, ожидался {target.year}"
+                    )
                     page.open_month_menu().choose_month(target.month - 1)
                     page.select_day(target.day)
                     check_selected(page, target)
@@ -268,9 +293,14 @@ class TestYearPicker:
                 errors.append(f"{edge} ({target.year}): {exc}")
 
         # --- 3. Годы за пределами меню ---------------------------------------
-        for edge, target in [("min−1", date(year_min - 1, 6, 15)), ("max+1", date(year_max + 1, 6, 15))]:
+        for edge, target in [
+            ("min−1", date(year_min - 1, 6, 15)),
+            ("max+1", date(year_max + 1, 6, 15)),
+        ]:
             try:
-                with allure.step(f"3. Год вне меню ({edge} = {target.year}): ввести {target.isoformat()} и отправить"):
+                with allure.step(
+                    f"3. Год вне меню ({edge} = {target.year}): ввести {target.isoformat()} и отправить"
+                ):
                     page.open().type_date(target.isoformat())
                     submit_and_check(target.isoformat())
             except AssertionError as exc:
@@ -294,7 +324,6 @@ class TestYearPicker:
 @allure.feature("Календарь")
 @allure.story("Границы месяца (±1 день)")
 class TestMonthBoundaries:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Границы нечётных месяцев 2026: 1-е − 1 день, последнее + 1 день")
@@ -335,9 +364,12 @@ class TestMonthBoundaries:
             next_first = date(*month_shift(year, month, 1), 1)
 
             try:
-                with allure.step(f"{name} {year}: {fmt(prev_last)} ← {fmt(first)} … {fmt(last)} → {fmt(next_first)}"):
-
-                    with allure.step(f"1. Выбрать 1-е число: {fmt(first)} — месяц остаётся №{month}"):
+                with allure.step(
+                    f"{name} {year}: {fmt(prev_last)} ← {fmt(first)} … {fmt(last)} → {fmt(next_first)}"
+                ):
+                    with allure.step(
+                        f"1. Выбрать 1-е число: {fmt(first)} — месяц остаётся №{month}"
+                    ):
                         page.select_date(first)
                         check_selected(page, first)
 
@@ -346,7 +378,9 @@ class TestMonthBoundaries:
                         assert actual == prev_last, f"{fmt(first)} − 1 день дало {fmt(actual)}"
                         check_selected(page, prev_last)
 
-                    with allure.step(f"3. Выбрать последнее число: {fmt(last)} — месяц остаётся №{month}"):
+                    with allure.step(
+                        f"3. Выбрать последнее число: {fmt(last)} — месяц остаётся №{month}"
+                    ):
                         page.select_date(last)
                         check_selected(page, last)
 
@@ -369,10 +403,11 @@ class TestMonthBoundaries:
 @allure.feature("Календарь")
 @allure.story("Переход через год")
 class TestYearRollover:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
-    @allure.title("Переход через год: 31.12 + 1 день = 01.01 следующего, 01.01 − 1 день = 31.12 предыдущего")
+    @allure.title(
+        "Переход через год: 31.12 + 1 день = 01.01 следующего, 01.01 − 1 день = 31.12 предыдущего"
+    )
     def test_year_rollover(self, page):
         """Проверяем переход через границу года в обе стороны для нескольких лет:
 
@@ -407,8 +442,9 @@ class TestYearRollover:
             next_jan1, prev_dec31 = date(year + 1, 1, 1), date(year - 1, 12, 31)
 
             try:
-                with allure.step(f"{year}: {fmt(prev_dec31)} ← {fmt(jan1)} … {fmt(dec31)} → {fmt(next_jan1)}"):
-
+                with allure.step(
+                    f"{year}: {fmt(prev_dec31)} ← {fmt(jan1)} … {fmt(dec31)} → {fmt(next_jan1)}"
+                ):
                     with allure.step(f"1. Выбрать {fmt(dec31)}"):
                         page.select_date(dec31)
                         check_selected(page, dec31)
@@ -441,7 +477,6 @@ class TestYearRollover:
 @allure.feature("Календарь")
 @allure.story("Високосные годы")
 class TestLeapYears:
-
     @pytest.mark.positive
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Високосные годы: в феврале 29 или 28 дней, последний день февраля + 1 = 01.03")
@@ -476,7 +511,6 @@ class TestLeapYears:
 
             try:
                 with allure.step(f"{year} — {kind}, ожидается {days} дней в феврале"):
-
                     with allure.step(f"1. Открыть February {year}"):
                         page.go_to(year, 2)
 
@@ -507,7 +541,6 @@ class TestLeapYears:
 @allure.feature("Календарь")
 @allure.story("Негативные сценарии")
 class TestCalendarNegative:
-
     @pytest.mark.negative
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Esc закрывает календарь без выбора даты — поле остаётся пустым")

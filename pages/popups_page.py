@@ -11,6 +11,7 @@
 
 Подсказка: клик по .tooltip_1 переключает видимость #myTooltip «Cool text».
 """
+
 import allure
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -48,8 +49,14 @@ class PopupsPage(BasePage):
         return self.is_visible(self.HEADING)
 
     def get_button_texts(self) -> dict[str, str]:
-        return {name: self.get_text(loc) for name, loc in
-                (("alert", self.ALERT_BTN), ("confirm", self.CONFIRM_BTN), ("prompt", self.PROMPT_BTN))}
+        return {
+            name: self.get_text(loc)
+            for name, loc in (
+                ("alert", self.ALERT_BTN),
+                ("confirm", self.CONFIRM_BTN),
+                ("prompt", self.PROMPT_BTN),
+            )
+        }
 
     def _text_content(self, locator) -> str:
         return (self.driver.find_element(*locator).get_attribute("textContent") or "").strip()
@@ -61,7 +68,9 @@ class PopupsPage(BasePage):
         return self._text_content(self.PROMPT_RESULT)
 
     def get_tooltip_trigger_text(self) -> str:
-        return self.driver.find_element(*self.TOOLTIP_TRIGGER).text.replace(TOOLTIP_TEXT, "").strip()
+        return (
+            self.driver.find_element(*self.TOOLTIP_TRIGGER).text.replace(TOOLTIP_TEXT, "").strip()
+        )
 
     def _tooltip_shown_class(self) -> bool:
         """showTooltip() переключает класс show у #myTooltip — это и есть состояние подсказки."""
@@ -74,8 +83,11 @@ class PopupsPage(BasePage):
         под нагрузкой (-n, несколько браузеров) она запаздывает."""
         try:
             WebDriverWait(self.driver, timeout, poll_frequency=0.5).until(
-                lambda _: self._tooltip_shown_class()
-                and self.driver.find_element(*self.TOOLTIP).is_displayed())
+                lambda _: (
+                    self._tooltip_shown_class()
+                    and self.driver.find_element(*self.TOOLTIP).is_displayed()
+                )
+            )
             return True
         except TimeoutException:
             return False
@@ -84,8 +96,11 @@ class PopupsPage(BasePage):
         """Подсказка скрыта: класса show нет и элемент невидим (visibility: hidden)."""
         try:
             WebDriverWait(self.driver, timeout, poll_frequency=0.5).until(
-                lambda _: not self._tooltip_shown_class()
-                and not self.driver.find_element(*self.TOOLTIP).is_displayed())
+                lambda _: (
+                    not self._tooltip_shown_class()
+                    and not self.driver.find_element(*self.TOOLTIP).is_displayed()
+                )
+            )
             return True
         except TimeoutException:
             return False

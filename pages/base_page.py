@@ -1,4 +1,5 @@
 """Базовый Page Object: общие действия и ожидания для всех страниц."""
+
 import allure
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
 from selenium.webdriver.common.alert import Alert
@@ -38,12 +39,16 @@ class BasePage:
 
     def find_visible(self, locator: Locator, timeout: float | None = None) -> WebElement:
         """Первый ВИДИМЫЙ элемент из всех совпадений (на странице бывают скрытые дубли)."""
+
         def _visible(drv):
             for el in drv.find_elements(*locator):
                 if el.is_displayed():
                     return el
             return False
-        return WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(_visible)
+
+        return WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(
+            _visible
+        )
 
     def is_visible(self, locator: Locator, timeout: float = 3) -> bool:
         try:
@@ -63,9 +68,7 @@ class BasePage:
 
     # --- действия ---------------------------------------------------------
     def scroll_to(self, element: WebElement) -> WebElement:
-        self.driver.execute_script(
-            "arguments[0].scrollIntoView({block: 'center'});", element
-        )
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
         return element
 
     def click_element(self, element: WebElement) -> None:
@@ -94,7 +97,9 @@ class BasePage:
 
     # --- браузерные диалоги (alert / confirm / prompt) ---------------------
     def wait_alert(self, timeout: float | None = None) -> Alert:
-        return WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(EC.alert_is_present())
+        return WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(
+            EC.alert_is_present()
+        )
 
     def is_alert_present(self, timeout: float = 1) -> bool:
         try:

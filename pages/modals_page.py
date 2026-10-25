@@ -12,6 +12,7 @@
 
 В Form Modal — форма Jetpack: Name (обязательное), Email, Message, Submit.
 """
+
 from typing import Literal
 
 import allure
@@ -164,9 +165,14 @@ class ModalsPage(BasePage):
             "Submit": self.is_visible(self.SUBMIT),
         }
 
-    def fill_form(self, name: str | None = None, email: str | None = None, message: str | None = None):
-        shown = ", ".join(f"{k}=«{v}»" for k, v in
-                          (("Name", name), ("Email", email), ("Message", message)) if v is not None)
+    def fill_form(
+        self, name: str | None = None, email: str | None = None, message: str | None = None
+    ):
+        shown = ", ".join(
+            f"{k}=«{v}»"
+            for k, v in (("Name", name), ("Email", email), ("Message", message))
+            if v is not None
+        )
         with allure.step(f"Заполнить форму: {shown or 'ничего'}"):
             for locator, value in ((self.NAME, name), (self.EMAIL, email), (self.MESSAGE, message)):
                 if value is not None:
@@ -186,8 +192,10 @@ class ModalsPage(BasePage):
 
     def get_field_error(self, field: str, timeout: float = 5) -> str:
         """Текст ошибки под полем (name / email / message) или '' если ошибки нет."""
-        locator = (By.CSS_SELECTOR,
-                   f"[data-jp-field-id='{FIELD_WRAP[field]}'] .contact-form__input-error.has-errors")
+        locator = (
+            By.CSS_SELECTOR,
+            f"[data-jp-field-id='{FIELD_WRAP[field]}'] .contact-form__input-error.has-errors",
+        )
         if not self.is_visible(locator, timeout):
             return ""
         return self.find(locator).text.strip()
