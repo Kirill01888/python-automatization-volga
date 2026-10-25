@@ -7,8 +7,17 @@ import allure
 import pytest
 from selenium.common.exceptions import UnexpectedAlertPresentException
 
-from pages.popups_page import (ALERT_TEXT, CONFIRM_CANCEL, CONFIRM_OK, CONFIRM_TEXT, PROMPT_EMPTY,
-                               PROMPT_TEXT, TOOLTIP_TEXT, PopupsPage, prompt_greeting)
+from pages.popups_page import (
+    ALERT_TEXT,
+    CONFIRM_CANCEL,
+    CONFIRM_OK,
+    CONFIRM_TEXT,
+    PROMPT_EMPTY,
+    PROMPT_TEXT,
+    TOOLTIP_TEXT,
+    PopupsPage,
+    prompt_greeting,
+)
 
 pytestmark = [pytest.mark.popups]
 

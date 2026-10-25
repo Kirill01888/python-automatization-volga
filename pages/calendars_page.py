@@ -15,7 +15,6 @@
 
 Значение в поле меняется только после клика по дню.
 """
-import calendar
 from dataclasses import dataclass
 from datetime import date, timedelta
 

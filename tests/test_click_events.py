@@ -1,9 +1,9 @@
 """Тесты страницы Click Events: https://practice-automation.com/click-events/"""
 import allure
 import pytest
+from selenium.webdriver.common.keys import Keys
 
 from pages.click_events_page import ANIMAL_SOUNDS, ClickEventsPage
-from selenium.webdriver.common.keys import Keys
 
 pytestmark = [pytest.mark.click_events]
 

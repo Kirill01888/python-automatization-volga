@@ -4,7 +4,7 @@
 драйвер, а при необходимости и сам браузер (Chrome for Testing / Firefox),
 скачиваются автоматически. Ручная настройка не требуется.
 """
-from typing import Callable
+from collections.abc import Callable
 
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
