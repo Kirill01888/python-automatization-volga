@@ -1,7 +1,11 @@
 """Базовый Page Object: общие действия и ожидания для всех страниц."""
 
 import allure
-from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
+from selenium.common.exceptions import (
+    ElementClickInterceptedException,
+    StaleElementReferenceException,
+    TimeoutException,
+)
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
@@ -27,7 +31,16 @@ class BasePage:
 
     def open(self):
         with allure.step(f"Открыть страницу {self.url}"):
-            self.driver.get(self.url)
+            try:
+                self.driver.get(self.url)
+            except TimeoutException:
+                # Сайт иногда не отвечает за page_load_timeout — одна повторная попытка
+                allure.attach(
+                    "Страница не загрузилась за отведённое время, повторная попытка",
+                    name="Повтор загрузки страницы",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
+                self.driver.get(self.url)
         return self
 
     def find(self, locator: Locator) -> WebElement:
@@ -121,13 +134,16 @@ class BasePage:
         self.wait.until(EC.element_to_be_clickable(element)).click()
 
     def click(self, locator: Locator, attempts: int = 3) -> None:
-        """Клик по локатору. Если элемент перерисовался между поиском и кликом
-        (StaleElementReferenceException) — ищем его заново и повторяем."""
+        """Клик по локатору. Повторяем (ищем элемент заново и снова прокручиваем
+        к нему), если:
+        - элемент перерисовался между поиском и кликом (StaleElementReference);
+        - клик перехватил другой элемент (ElementClickIntercepted) — вёрстка
+          сдвинулась после прокрутки: догружаются шрифты и рекламные блоки."""
         for attempt in range(1, attempts + 1):
             try:
                 self.click_element(self.find(locator))
                 return
-            except StaleElementReferenceException:
+            except (StaleElementReferenceException, ElementClickInterceptedException):
                 if attempt == attempts:
                     raise
 
