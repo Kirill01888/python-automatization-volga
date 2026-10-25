@@ -57,6 +57,15 @@ class TestFormSubmit:
     @allure.severity(allure.severity_level.BLOCKER)
     @allure.title("Страница открывается: все поля формы на месте, форма пустая")
     def test_page_initial_state(self, page):
+        """Цель: убедиться, что форма загружается полностью и в чистом состоянии —
+        все поля и варианты выбора на месте, ничего не заполнено заранее.
+
+        Ожидаемый результат: есть заголовок «Form Fields» и пометка «* Required»
+        у Name; подписи напитков (Water … Ctrl-Alt-Delight) и цветов (Red …
+        #FFC0CB), варианты списка (пусто, Yes, No, Undecided), подсказка «Enter
+        message here» и пять пунктов Automation tools; все поля пустые, ничего
+        не выбрано.
+        """
         with allure.step("Заголовок и пометка «* Required» у Name"):
             assert page.is_heading_visible(), "Заголовок 'Form Fields' не отображается"
             assert page.get_required_note() == "* Required"
@@ -76,6 +85,14 @@ class TestFormSubmit:
         "Пункт 5 задания: Message = список Automation tools через запятую, форма отправляется"
     )
     def test_message_from_automation_tools(self, page):
+        """Цель: выполнить пункт 5 задания — получить средствами Selenium список
+        элементов раздела Automation tools, преобразовать его в текст через
+        запятую и заполнить им поле Message.
+
+        Ожидаемый результат: в Message ровно «Selenium, Playwright, Cypress,
+        Appium, Katalon Studio» — список со страницы в том же порядке; форма
+        с этим значением отправляется — alert «Message received!».
+        """
         page.fill_name(NAME)
         text = page.fill_message_with_tools()
         with allure.step("В Message ровно список инструментов со страницы через запятую"):
@@ -88,6 +105,12 @@ class TestFormSubmit:
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Полностью заполненная форма отправляется: alert «Message received!»")
     def test_submit_full_form(self, page):
+        """Цель: проверить основной сценарий — отправку формы со всеми заполненными
+        полями всех типов (текст, пароль, чекбоксы, радиокнопка, список).
+
+        Ожидаемый результат: перед отправкой все введённые значения на месте;
+        после Submit появляется alert «Message received!».
+        """
         page.fill_name(NAME).fill_password(PASSWORD)
         page.toggle_drink("Coffee").toggle_drink("Ctrl-Alt-Delight")
         page.choose_color("Blue").choose_automation("Yes")
@@ -109,6 +132,12 @@ class TestFormSubmit:
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("После отправки все поля формы очищаются")
     def test_form_reset_after_submit(self, page):
+        """Цель: проверить, что после успешной отправки форма очищается и готова
+        к новому вводу — так устроен обработчик submitForm().
+
+        Ожидаемый результат: после закрытия alert «Message received!» текстовые
+        поля пустые, чекбоксы и радиокнопки сняты, в списке ничего не выбрано.
+        """
         page.fill_name(NAME).fill_password(PASSWORD).toggle_drink("Milk")
         page.choose_color("Green").choose_automation("Undecided")
         page.fill_email(EMAIL).fill_message(MESSAGE)
@@ -123,6 +152,12 @@ class TestFormSubmit:
     @allure.severity(allure.severity_level.CRITICAL)
     @allure.title("Форма только с обязательным полем Name отправляется")
     def test_submit_only_required(self, page):
+        """Цель: убедиться, что для отправки достаточно единственного
+        обязательного поля — Name; остальные поля необязательны.
+
+        Ожидаемый результат: форма с заполненным только Name отправляется —
+        alert «Message received!».
+        """
         page.fill_name(NAME).submit()
         check_submitted(page)
 
@@ -138,6 +173,12 @@ class TestFormControls:
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Чекбоксы напитков отмечаются независимо, повторный клик снимает отметку")
     def test_drink_checkboxes(self, page):
+        """Цель: проверить работу группы чекбоксов напитков — допускается выбор
+        нескольких вариантов и снятие отметки.
+
+        Ожидаемый результат: Water, Coffee и Wine отмечаются одновременно;
+        повторный клик по Coffee снимает только его отметку.
+        """
         for drink in ("Water", "Coffee", "Wine"):
             page.toggle_drink(drink)
         with allure.step("Отмечены Water, Coffee, Wine"):
@@ -150,6 +191,12 @@ class TestFormControls:
     @allure.severity(allure.severity_level.NORMAL)
     @allure.title("Радиокнопки цвета: выбрана всегда только одна")
     def test_color_radio_single_choice(self, page):
+        """Цель: проверить группу радиокнопок цвета — в отличие от чекбоксов,
+        выбран может быть только один вариант.
+
+        Ожидаемый результат: при поочерёдном выборе каждого из пяти цветов
+        отмечен всегда только последний выбранный.
+        """
         for color in COLORS:
             page.choose_color(color)
             with allure.step(f"Выбран только «{color}»"):
@@ -161,6 +208,12 @@ class TestFormControls:
         "Выпадающий список «Do you like automation?»: по умолчанию пусто, выбираются Yes, No, Undecided"
     )
     def test_automation_select(self, page):
+        """Цель: проверить выпадающий список «Do you like automation?» —
+        значение по умолчанию и выбор каждого варианта.
+
+        Ожидаемый результат: по умолчанию выбран пустой вариант; Yes, No
+        и Undecided выбираются и становятся текущим значением списка.
+        """
         with allure.step("По умолчанию выбран пустой вариант"):
             assert page.get_automation_value() == "default"
         for text, value in (("Yes", "yes"), ("No", "no"), ("Undecided", "undecided")):
@@ -172,6 +225,12 @@ class TestFormControls:
     @allure.severity(allure.severity_level.MINOR)
     @allure.title("Поле Password скрывает ввод (type=password) и принимает значение")
     def test_password_masked(self, page):
+        """Цель: убедиться, что поле Password скрывает вводимые символы,
+        но сохраняет значение.
+
+        Ожидаемый результат: тип поля — password (символы маскируются),
+        введённое значение принято полем.
+        """
         page.fill_password(PASSWORD)
         with allure.step("Тип поля — password, значение принято"):
             assert page.get_password_type() == "password"
@@ -191,6 +250,13 @@ class TestFormNegative:
         "Без Name форма не отправляется: браузер помечает поле невалидным, данные сохраняются"
     )
     def test_submit_without_name(self, page):
+        """Цель: проверить обязательность поля Name — форма без него не должна
+        отправляться, а введённые пользователем данные не должны теряться.
+
+        Ожидаемый результат: alert «Message received!» не появляется; поле Name
+        помечено браузером как невалидное, есть сообщение встроенной проверки;
+        отмеченный напиток, Email и Message сохранены.
+        """
         page.toggle_drink("Water").fill_email(EMAIL).fill_message(MESSAGE)
         page.submit()
         check_not_submitted(page)
@@ -212,6 +278,13 @@ class TestFormNegative:
     )
     @allure.title("Name из одних пробелов не должно считаться заполненным")
     def test_submit_whitespace_name(self, page):
+        """Цель: проверить, что Name из одних пробелов не считается заполненным —
+        частый дефект валидации обязательных полей.
+
+        Ожидаемый результат: форма не должна отправляться. Тест помечен xfail —
+        атрибут required считает пробелы значением, и форма отправляется
+        (известный дефект).
+        """
         page.fill_name("     ").submit()
         check_not_submitted(page)
 
@@ -225,5 +298,13 @@ class TestFormNegative:
     @pytest.mark.parametrize("bad_email", ["abc", "user@"], ids=["no_at", "no_domain"])
     @allure.title("Некорректный Email «{bad_email}» не должен приниматься")
     def test_submit_invalid_email(self, page, bad_email):
+        """Цель: проверить, что поле Email не принимает адрес неверного формата —
+        на странице у поля подсказка «No fake emails!». Тест параметризован
+        адресами без «@» и без домена.
+
+        Ожидаемый результат: форма с некорректным Email не должна отправляться.
+        Тест помечен xfail — поле обычное текстовое, формат не проверяется,
+        и форма отправляется (известный дефект).
+        """
         page.fill_name(NAME).fill_email(bad_email).submit()
         check_not_submitted(page)
