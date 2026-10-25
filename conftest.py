@@ -51,6 +51,8 @@ PAGE_SUITES = {
     "modals": "Модальные окна",
     "ads": "Рекламные окна",
     "forms": "Форма (Form Fields)",
+    "click_events": "События (Click Events)",
+    "popups": "Всплывающие окна (Popups)",
 }
 
 
