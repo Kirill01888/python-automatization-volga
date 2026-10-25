@@ -1,6 +1,7 @@
 """Базовый Page Object: общие действия и ожидания для всех страниц."""
 import allure
 from selenium.common.exceptions import StaleElementReferenceException, TimeoutException
+from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
@@ -42,7 +43,7 @@ class BasePage:
                 if el.is_displayed():
                     return el
             return False
-        return WebDriverWait(self.driver, timeout or self.timeout).until(_visible)
+        return WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(_visible)
 
     def is_visible(self, locator: Locator, timeout: float = 3) -> bool:
         try:
@@ -53,7 +54,7 @@ class BasePage:
 
     def wait_invisible(self, locator: Locator, timeout: float | None = None) -> bool:
         try:
-            WebDriverWait(self.driver, timeout or self.timeout).until(
+            WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(
                 EC.invisibility_of_element_located(locator)
             )
             return True
@@ -91,8 +92,36 @@ class BasePage:
     def get_text(self, locator: Locator) -> str:
         return self.find(locator).text.strip()
 
+    # --- браузерные диалоги (alert / confirm / prompt) ---------------------
+    def wait_alert(self, timeout: float | None = None) -> Alert:
+        return WebDriverWait(self.driver, self.timeout if timeout is None else timeout).until(EC.alert_is_present())
+
+    def is_alert_present(self, timeout: float = 1) -> bool:
+        try:
+            self.wait_alert(timeout)
+            return True
+        except TimeoutException:
+            return False
+
+    def get_alert_text(self) -> str:
+        return self.wait_alert().text
+
     def accept_alert(self) -> str:
-        alert = self.wait.until(EC.alert_is_present())
+        """Нажать OK в диалоге; возвращает его текст."""
+        alert = self.wait_alert()
         text = alert.text
-        alert.accept()
+        with allure.step(f"Нажать OK в диалоге «{text}»"):
+            alert.accept()
         return text
+
+    def dismiss_alert(self) -> str:
+        """Нажать Cancel в диалоге; возвращает его текст."""
+        alert = self.wait_alert()
+        text = alert.text
+        with allure.step(f"Нажать Cancel в диалоге «{text}»"):
+            alert.dismiss()
+        return text
+
+    def type_into_prompt(self, text: str) -> None:
+        with allure.step(f"Ввести в prompt «{text}»"):
+            self.wait_alert().send_keys(text)
