@@ -138,13 +138,15 @@ class TestAdAppearance:
         в Firefox меняется размер окна; фактический размер — во вложении.
         """
         page = AdsPage(driver)
-        width, height = page.set_viewport(375, 812)
+        page.set_viewport(375, 812)
+        page.open()
+        width, height = page.get_viewport()
         allure.attach(
             f"{width}×{height}",
             name="Фактический размер видимой области",
             attachment_type=allure.attachment_type.TEXT,
         )
-        page.open().wait_for_ad()
+        page.wait_for_ad()
         with allure.step("Окно рекламы помещается в экран"):
             assert page.is_ad_inside_viewport(), "Окно рекламы выходит за границы экрана"
         page.close_ad()

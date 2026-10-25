@@ -18,6 +18,7 @@ from typing import Literal
 import allure
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.actions.action_builder import ActionBuilder
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
@@ -109,8 +110,21 @@ class ModalsPage(BasePage):
         return self.is_visible(self.overlay(kind), timeout)
 
     def wait_modal_closed(self, kind: ModalKind, timeout: float = 5) -> bool:
-        """True, если окно и затемнение скрылись за timeout секунд."""
-        return self.wait_invisible(self.overlay(kind), timeout)
+        """True, если окно закрылось полностью за timeout секунд: затемнение скрыто
+        и у <html> снят класс pum-open. Popup Maker снимает его в конце закрытия,
+        вместе с разблокировкой и восстановлением прокрутки страницы — до этого
+        момента прокрутка к элементам страницы может быть сброшена."""
+        if not self.wait_invisible(self.overlay(kind), timeout):
+            return False
+        try:
+            WebDriverWait(self.driver, timeout).until(lambda _: not self.is_html_marked_open())
+            return True
+        except TimeoutException:
+            return False
+
+    def is_html_marked_open(self) -> bool:
+        classes = self.driver.find_element(By.TAG_NAME, "html").get_attribute("class") or ""
+        return "pum-open" in classes.split()
 
     def open_modal(self, kind: ModalKind):
         with allure.step(f"Нажать кнопку «{self.name_of(kind)}»"):
@@ -216,16 +230,28 @@ class ModalsPage(BasePage):
             "return getComputedStyle(arguments[0]).resize;", self.find(self.MESSAGE)
         )
 
-    def drag_message_resize_handle(self, dx: int, dy: int):
-        """Потянуть мышью уголок растяжки поля Message (правый нижний угол)."""
-        with allure.step(f"Потянуть уголок поля Message на {dx} px вправо и {dy} px вниз"):
-            field = self.scroll_to(self.find(self.MESSAGE))
-            size = field.size
-            ActionChains(self.driver).move_to_element_with_offset(
-                field, size["width"] // 2 - 3, size["height"] // 2 - 3
-            ).click_and_hold().move_by_offset(dx // 2, dy // 2).move_by_offset(
-                dx - dx // 2, dy - dy // 2
-            ).release().perform()
+    def drag_message_resize_handle(self, dx: int):
+        """Потянуть мышью уголок растяжки поля Message (правый нижний угол) вправо.
+
+        Поле прокручивается в центр экрана, координаты уголка берутся из
+        getBoundingClientRect, и мышь ведётся по абсолютным координатам видимой
+        области. Смещение от элемента (move_to_element_with_offset) здесь
+        ненадёжно: Selenium отсчитывает его от центра видимой части элемента,
+        а поле Message бывает выше экрана."""
+        with allure.step(f"Потянуть уголок поля Message на {dx} px вправо"):
+            field = self.find(self.MESSAGE)
+            self.scroll_to(field)
+            r = self.get_rect(self.MESSAGE)
+            vw, _ = self.get_viewport()
+            x, y = int(r["right"]) - 4, int(r["bottom"]) - 4
+            target_x = min(x + dx, vw - 5)
+            actions = ActionBuilder(self.driver)
+            actions.pointer_action.move_to_location(x, y)
+            actions.pointer_action.pointer_down()
+            actions.pointer_action.move_to_location((x + target_x) // 2, y)
+            actions.pointer_action.move_to_location(target_x, y)
+            actions.pointer_action.pointer_up()
+            actions.perform()
         return self
 
     def get_field_error(self, field: str, timeout: float = 5) -> str:

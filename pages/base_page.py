@@ -70,7 +70,8 @@ class BasePage:
         (окно браузера уже ~500 px сделать нельзя), Firefox — размер окна.
         Возвращает фактические window.innerWidth / innerHeight."""
         with allure.step(f"Установить размер экрана {width}×{height}"):
-            if hasattr(self.driver, "execute_cdp_cmd"):
+            browser = (self.driver.capabilities.get("browserName") or "").lower()
+            if browser in ("chrome", "msedge", "microsoftedge"):
                 self.driver.execute_cdp_cmd(
                     "Emulation.setDeviceMetricsOverride",
                     {

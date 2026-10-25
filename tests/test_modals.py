@@ -208,10 +208,11 @@ class TestModalsMobile:
         размер окна; фактический размер и границы окон — во вложениях.
         """
         page = ModalsPage(driver)
-        width, height = page.set_viewport(375, 812)
+        page.set_viewport(375, 812)
+        page.open()
+        width, height = page.get_viewport()
         allure.attach(f"{width}×{height}", name="Фактический размер видимой области",
                       attachment_type=allure.attachment_type.TEXT)
-        page.open()
         errors = []
 
         try:
@@ -401,7 +402,7 @@ class TestModalsNegative:
         page.open_modal("form")
         resize = page.get_message_resize_style()
         before = page.get_rect(page.MESSAGE)
-        page.drag_message_resize_handle(600, 100)
+        page.drag_message_resize_handle(600)
         after = page.get_rect(page.MESSAGE)
         modal = page.get_rect(page.container("form"))
         allure.attach(
@@ -409,8 +410,11 @@ class TestModalsNegative:
             name="Размеры поля и окна",
             attachment_type=allure.attachment_type.TEXT,
         )
-        with allure.step("Растяжка сработала — размер поля изменился"):
-            assert after != before, f"Уголок не потянулся (resize: {resize}) — проверка невозможна"
+        with allure.step(f"Растяжка сработала — ширина поля изменилась ({before['width']} → {after['width']})"):
+            assert after["width"] > before["width"], (
+                f"Уголок не потянулся: ширина {before['width']} → {after['width']} "
+                f"(resize: {resize}) — проверка невозможна"
+            )
         with allure.step(
             f"Правая граница поля ({after['right']}) не дальше правой границы окна ({modal['right']})"
         ):
