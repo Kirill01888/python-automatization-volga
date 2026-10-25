@@ -284,9 +284,8 @@ class TestPopupsNegative:
         assert page.is_alert_present(), "Alert не появился"
         with allure.step(
             "Попытка нажать «Confirm Popup» при открытом alert → UnexpectedAlertPresentException"
-        ):
-            with pytest.raises(UnexpectedAlertPresentException):
-                page.driver.find_element(*page.CONFIRM_BTN).click()
+        ), pytest.raises(UnexpectedAlertPresentException):
+            page.driver.find_element(*page.CONFIRM_BTN).click()
         with allure.step("Confirm не сработал: результат пустой"):
             if page.is_alert_present(timeout=0.5):
                 page.accept_alert()
