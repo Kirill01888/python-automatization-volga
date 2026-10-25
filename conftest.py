@@ -88,6 +88,52 @@ def _allure_suites(request):
         allure.dynamic.sub_suite(story)
 
 
+# --------------------------------------------------------------------------
+# Вывод в консоль названия теста перед его запуском
+# --------------------------------------------------------------------------
+_config: pytest.Config | None = None
+_titles: dict[str, str] = {}
+
+
+def pytest_configure(config):
+    global _config
+    _config = config
+
+
+def _display_title(item) -> str:
+    """Название из @allure.title с подставленными параметрами + браузер."""
+    func = getattr(item, "function", None)
+    title = getattr(func, "__allure_display_name__", None) or item.name
+    params = getattr(getattr(item, "callspec", None), "params", {})
+    try:
+        title = title.format(**params)
+    except (KeyError, IndexError, ValueError):
+        pass
+    browser = params.get("browser_name")
+    return f"{title} [{browser}]" if browser else title
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        _titles[item.nodeid] = _display_title(item)
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_logstart(nodeid, location):
+    """Перед каждым тестом печатает «▶ <название>».
+
+    Без -n — русское название из Allure. С -n (xdist) хук срабатывает в главном
+    процессе, когда воркер берёт тест: названий там нет, печатается id теста.
+    """
+    if _config is None or hasattr(_config, "workerinput"):
+        return
+    reporter = _config.pluginmanager.get_plugin("terminalreporter")
+    if reporter is None:
+        return
+    reporter.ensure_newline()
+    reporter.write_line(f"▶ {_titles.get(nodeid, nodeid)}", cyan=True, bold=True)
+
+
 @pytest.hookimpl(wrapper=True)
 def pytest_runtest_makereport(item, call):
     """При падении теста прикладываем к Allure скриншот и URL страницы."""
