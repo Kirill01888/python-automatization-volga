@@ -435,30 +435,6 @@ class TestYearRollover:
 
 
 # ==========================================================================
-# 5. Серия выборов в одном месяце
-# ==========================================================================
-@allure.epic("practice-automation.com")
-@allure.feature("Календарь")
-@allure.story("Серия выборов в месяце")
-@pytest.mark.skip(reason="Отключено: сценарий признан избыточным, код сохранён")
-class TestDateSeries:
-
-    @pytest.mark.positive
-    @allure.severity(allure.severity_level.NORMAL)
-    @pytest.mark.parametrize(
-        "year, month, days",
-        [(2026, 3, [2, 5, 17, 31]), (2026, 2, [1, 14, 28]), (2027, 7, [31, 4, 15])],
-        ids=["mar_2026", "feb_2026", "jul_2027"],
-    )
-    @allure.title("Последовательный выбор дней {days} в {month:02d}.{year}: выделен всегда только последний")
-    def test_series_in_month(self, page, year, month, days):
-        page.go_to(year, month)
-        for day in days:
-            page.open_picker().select_day(day)
-            check_selected(page, date(year, month, day))
-
-
-# ==========================================================================
 # 6. Високосные годы
 # ==========================================================================
 @allure.epic("practice-automation.com")
