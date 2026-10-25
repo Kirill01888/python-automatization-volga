@@ -184,6 +184,77 @@ class TestFormModal:
 
 
 # ==========================================================================
+# Мобильный экран
+# ==========================================================================
+@allure.epic("practice-automation.com")
+@allure.feature("Модальные окна")
+@allure.story("Мобильный экран")
+class TestModalsMobile:
+
+    @pytest.mark.positive
+    @allure.severity(allure.severity_level.NORMAL)
+    @allure.title("Мобильный экран 375×812: оба окна помещаются по ширине, всё содержимое доступно, закрываются «×»")
+    def test_modals_on_mobile_viewport(self, driver):
+        """Цель: проверить, что модальные окна пригодны для использования на
+        экране смартфона — адаптивная вёрстка Popup Maker растягивает окна
+        почти на всю ширину экрана.
+
+        Ожидаемый результат: Simple Modal целиком помещается в экран, его
+        содержимое и «×» видны, окно закрывается. Form Modal помещается по
+        ширине без горизонтальной прокрутки страницы, «×» в видимой области,
+        поля формы видны, а кнопка Submit становится видимой после прокрутки
+        к ней (форма выше экрана — по высоте окно прокручивается); окно
+        закрывается «×». В Chrome/Edge экран эмулируется, в Firefox меняется
+        размер окна; фактический размер и границы окон — во вложениях.
+        """
+        page = ModalsPage(driver)
+        width, height = page.set_viewport(375, 812)
+        allure.attach(f"{width}×{height}", name="Фактический размер видимой области",
+                      attachment_type=allure.attachment_type.TEXT)
+        page.open()
+        errors = []
+
+        try:
+            with allure.step("Simple Modal на мобильном экране"):
+                page.open_modal("simple")
+                allure.attach(str(page.get_rect(page.container("simple"))),
+                              name="Границы Simple Modal", attachment_type=allure.attachment_type.TEXT)
+                assert page.is_inside_viewport(page.container("simple")), "Simple Modal не помещается в экран"
+                assert page.get_modal_title("simple") == SIMPLE_TITLE
+                assert page.get_modal_text("simple") == SIMPLE_TEXT
+                assert page.is_inside_viewport(page.close_button("simple")), "Кнопка «×» вне экрана"
+                page.close_by_x("simple")
+                assert page.wait_modal_closed("simple"), "Simple Modal не закрылось"
+        except AssertionError as exc:
+            errors.append(f"Simple Modal: {exc}")
+
+        try:
+            with allure.step("Form Modal на мобильном экране"):
+                page.open_modal("form")
+                allure.attach(str(page.get_rect(page.container("form"))),
+                              name="Границы Form Modal", attachment_type=allure.attachment_type.TEXT)
+                with allure.step("Окно помещается по ширине, горизонтальной прокрутки нет"):
+                    assert page.is_inside_viewport(page.container("form"), horizontal_only=True), \
+                        "Form Modal шире экрана"
+                    assert not page.has_horizontal_scroll(), "У страницы появилась горизонтальная прокрутка"
+                with allure.step("Кнопка «×» в видимой области"):
+                    assert page.is_inside_viewport(page.close_button("form")), "Кнопка «×» вне экрана"
+                with allure.step("Поля Name, Email, Message видны"):
+                    visible = page.are_form_fields_visible()
+                    assert all(visible[k] for k in ("Name", "Email", "Message")), \
+                        f"Не видны: {[k for k, v in visible.items() if not v]}"
+                with allure.step("После прокрутки к Submit кнопка в видимой области"):
+                    page.scroll_into_view(page.SUBMIT)
+                    assert page.is_inside_viewport(page.SUBMIT), "Кнопка Submit недоступна"
+                page.close_by_x("form")
+                assert page.wait_modal_closed("form"), "Form Modal не закрылось"
+        except AssertionError as exc:
+            errors.append(f"Form Modal: {exc}")
+
+        assert not errors, "Проблемы на мобильном экране:\n" + "\n".join(errors)
+
+
+# ==========================================================================
 # Отправка формы
 # ==========================================================================
 @allure.epic("practice-automation.com")
