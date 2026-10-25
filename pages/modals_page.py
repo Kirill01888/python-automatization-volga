@@ -21,6 +21,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from pages.base_page import BasePage, Locator
 
@@ -32,11 +33,9 @@ _MODALS: dict[str, tuple[str, str, str]] = {
     "form": ("formModal", "674", "Form Modal"),
 }
 
-FIELD_WRAP = {
-    "name": "g1065-name",
-    "email": "g1065-email",
-    "message": "g1065-message",
-}
+# Id полей Jetpack зависят от номера записи WordPress (g1051-name на /modals/,
+# g1065-name на /calendars/), поэтому ищем по суффиксу внутри окна формы.
+FIELD_SUFFIX = {"name": "-name", "email": "-email", "message": "-message"}
 
 
 class ModalsPage(BasePage):
@@ -45,10 +44,10 @@ class ModalsPage(BasePage):
     HEADING = (By.XPATH, "//h1[normalize-space()='Modals']")
 
     # --- форма внутри Form Modal -----------------------------------------
-    NAME = (By.ID, "g1065-name")
-    NAME_LABEL = (By.CSS_SELECTOR, "#popmake-674 label[for='g1065-name']")
-    EMAIL = (By.ID, "g1065-email")
-    MESSAGE = (By.ID, "contact-form-comment-g1065-message")
+    NAME = (By.CSS_SELECTOR, "#popmake-674 input[name$='-name']")
+    NAME_LABEL = (By.CSS_SELECTOR, "#popmake-674 label.grunion-field-label.name")
+    EMAIL = (By.CSS_SELECTOR, "#popmake-674 input[name$='-email']")
+    MESSAGE = (By.CSS_SELECTOR, "#popmake-674 textarea[name$='-message']")
     SUBMIT = (By.CSS_SELECTOR, "#popmake-674 button[type='submit']")
     SUCCESS = (By.CSS_SELECTOR, "#popmake-674 .contact-form-submission.submission-success")
     FORM_ERROR = (By.CSS_SELECTOR, "#popmake-674 .contact-form__error.show-errors")
@@ -117,7 +116,23 @@ class ModalsPage(BasePage):
         with allure.step(f"Нажать кнопку «{self.name_of(kind)}»"):
             self.click(self.trigger(kind))
             self.find(self.container(kind))
+            self.wait_open_animation(kind)
         return self
+
+    def wait_open_animation(self, kind: ModalKind, timeout: float = 5) -> None:
+        """Ждём окончания анимации открытия: окно и затемнение полностью непрозрачны.
+        Действия с окном посреди анимации (например, «×» сразу после появления)
+        могут оставить «зависшее» затемнение — пользователь так не делает."""
+        overlay = self.driver.find_element(*self.overlay(kind))
+        container = self.driver.find_element(*self.container(kind))
+        WebDriverWait(self.driver, timeout).until(
+            lambda d: d.execute_script(
+                "return getComputedStyle(arguments[0]).opacity === '1'"
+                " && getComputedStyle(arguments[1]).opacity === '1';",
+                overlay,
+                container,
+            )
+        )
 
     def close_by_x(self, kind: ModalKind):
         with allure.step(f"Закрыть окно «{self.name_of(kind)}» кнопкой «×»"):
@@ -190,11 +205,35 @@ class ModalsPage(BasePage):
     def get_success_text(self) -> str:
         return self.get_text(self.SUCCESS)
 
+    def scroll_into_view(self, locator):
+        """Прокрутить к элементу (внутри прокручиваемого затемнения окна)."""
+        self.scroll_to(self.find(locator))
+        return self
+
+    def get_message_resize_style(self) -> str:
+        """CSS resize у поля Message (both / vertical / none …)."""
+        return self.driver.execute_script(
+            "return getComputedStyle(arguments[0]).resize;", self.find(self.MESSAGE)
+        )
+
+    def drag_message_resize_handle(self, dx: int, dy: int):
+        """Потянуть мышью уголок растяжки поля Message (правый нижний угол)."""
+        with allure.step(f"Потянуть уголок поля Message на {dx} px вправо и {dy} px вниз"):
+            field = self.scroll_to(self.find(self.MESSAGE))
+            size = field.size
+            ActionChains(self.driver).move_to_element_with_offset(
+                field, size["width"] // 2 - 3, size["height"] // 2 - 3
+            ).click_and_hold().move_by_offset(dx // 2, dy // 2).move_by_offset(
+                dx - dx // 2, dy - dy // 2
+            ).release().perform()
+        return self
+
     def get_field_error(self, field: str, timeout: float = 5) -> str:
         """Текст ошибки под полем (name / email / message) или '' если ошибки нет."""
         locator = (
             By.CSS_SELECTOR,
-            f"[data-jp-field-id='{FIELD_WRAP[field]}'] .contact-form__input-error.has-errors",
+            f"#popmake-674 [data-jp-field-id$='{FIELD_SUFFIX[field]}'] "
+            ".contact-form__input-error.has-errors",
         )
         if not self.is_visible(locator, timeout):
             return ""
